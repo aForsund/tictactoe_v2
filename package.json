@@ -1,0 +1,28 @@
+{
+  "name": "tic-tac-toe",
+  "version": "1.0.0",
+  "description": "Introduction",
+  "main": "index.js",
+  "scripts": {
+    "devStart": "nodemon server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aForsund/tictactoe.git"
+  },
+  "author": "Alexander Førsund",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/aForsund/tictactoe/issues"
+  },
+  "homepage": "https://github.com/aForsund/tictactoe#readme",
+  "devDependencies": {
+    "nodemon": "^2.0.4"
+  },
+  "dependencies": {
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "jsonwebtoken": "^8.5.1",
+    "mongoose": "^5.9.28"
+  }
+}
