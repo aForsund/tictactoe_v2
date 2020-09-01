@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
-    name: {
+    username: {
         type: String,
         required: true
     },
@@ -14,7 +14,10 @@ const userSchema = new mongoose.Schema({
         type: Number,
         required: true,
         default: 1200
-    }
+    },
+    hash: String,
+    salt: String
+
 });
 
-module.exports = mongoose.model('tictactoeDB', userSchema);
+module.exports = mongoose.model('User', userSchema);

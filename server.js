@@ -1,27 +1,51 @@
-require('dotenv').config();
 
 const express = require('express');
+const path = require('path');
+const passport = require('passport');
+
+
+require('dotenv').config();
+
+//Create Express application
 const app = express();
-const mongoose = require('mongoose');
 
-//const jwt = require('jsonwebtoken');
+//Configure the DB and open a global connection
+require('./config/database');
 
-mongoose.connect(process.env.DATABASE_URL, { useNewUrlParser: true, useUnifiedTopology: true });
-const db = mongoose.connection;
-db.on('error', error => console.log(error));
-db.once('open', () => console.log('Connected to Database'));
+//Configure DB models
+require('./models/user');
+require('./models/game');
+
+//Pass the global passport object into the configuration function
+require('./config/passport')(passport);
+
+//Initialize passport object on every request
+app.use(passport.initialize());
+
+// *** Explain this ***
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+//Enable express to serve static files
+app.use(express.static(path.join(__dirname, 'public')));
+
 
 //Import routes
+const routes = require('./routes');
 const authRoute = require('./routes/auth');
 const gameRoute = require('./routes/game');
 const userRoute = require('./routes/user');
 
 
 //Route middleware
-app.use(express.json());
+app.use(routes);
+
+//API function calls
 app.use('/api/auth', authRoute);
 app.use('/api/user', userRoute);
 app.use('/api/game', gameRoute);
+
+
 
 
 app.listen(3000, () => console.log('I am alive...'));

@@ -1,5 +1,14 @@
+require('dotenv').config();
+
+const mongoose = require('mongoose');
 const express = require('express');
 const router = express.Router();
+const Game = mongoose.model('Game');
+const passport = require('passport');
+
+//Remove if not required - add function to update token on user interaction?
+const utils = require('../lib/utils');
+
 
 //Get all games
 router.get('/', (req, res) => {

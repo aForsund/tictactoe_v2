@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/user');
+const passport = require('passport');
 
 //Get all users
 router.get('/', async (req, res) => {
@@ -19,7 +20,8 @@ router.get('/:id', getUser, (req, res) => {
 });
 
 //Update user
-router.patch('/:id', getUser, async (req, res) => {
+router.patch('/:id', getUser, passport.authenticate('jwt', { session: false }), async (req, res) => {
+    console.log('user is authenticated...');
     if (req.body.name != null) {
         res.user.name = req.body.name;
     }
@@ -38,7 +40,7 @@ router.patch('/:id', getUser, async (req, res) => {
 
 });
 
-async function getUser(req, res, next) {
+const getUser = async (req, res, next) => {
     let user;
     try {
         user = await User.findById(req.params.id);
@@ -51,5 +53,7 @@ async function getUser(req, res, next) {
     res.user = user;
     next();
 }
+
+
 
 module.exports = router;
