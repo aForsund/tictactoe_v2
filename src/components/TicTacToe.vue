@@ -12,19 +12,32 @@
           v-bind:class="{ 'has-text-primary glowing': isHighlighted('row1col1') }"
           id="row1col1"
           v-on:click="confirmInput($event.target.id)"
-        >{{ board[0][0] }}</div>
+        >
+          <transition name="fade">
+            <span :key="board[0][0]">{{ board[0][0] }}</span>
+          </transition>
+        </div>
+
         <div
           class="cell"
           v-bind:class="{ 'has-text-primary glowing': isHighlighted('row1col2') }"
           id="row1col2"
           v-on:click="confirmInput($event.target.id)"
-        >{{ board[0][1] }}</div>
+        >
+          <transition name="fade">
+            <span :key="board[0][1]">{{ board[0][1] }}</span>
+          </transition>
+        </div>
         <div
           class="cell"
           v-bind:class="{ 'has-text-primary glowing': isHighlighted('row1col3') }"
           id="row1col3"
           v-on:click="confirmInput($event.target.id)"
-        >{{ board[0][2] }}</div>
+        >
+          <transition name="fade">
+            <span :key="board[0][2]">{{ board[0][2] }}</span>
+          </transition>
+        </div>
       </div>
       <div class="row" id="row2">
         <div
@@ -32,19 +45,31 @@
           v-bind:class="{ 'has-text-primary glowing': isHighlighted('row2col1') }"
           id="row2col1"
           v-on:click="confirmInput($event.target.id)"
-        >{{ board[1][0] }}</div>
+        >
+          <transition name="fade">
+            <span :key="board[1][0]">{{ board[1][0] }}</span>
+          </transition>
+        </div>
         <div
           class="cell"
           v-bind:class="{ 'has-text-primary glowing': isHighlighted('row2col2') }"
           id="row2col2"
           v-on:click="confirmInput($event.target.id)"
-        >{{ board[1][1] }}</div>
+        >
+          <transition name="fade">
+            <span :key="board[1][1]">{{ board[1][1] }}</span>
+          </transition>
+        </div>
         <div
           class="cell"
           v-bind:class="{ 'has-text-primary glowing': isHighlighted('row2col3') }"
           id="row2col3"
           v-on:click="confirmInput($event.target.id)"
-        >{{ board[1][2] }}</div>
+        >
+          <transition name="fade">
+            <span :key="board[1][2]">{{ board[1][2] }}</span>
+          </transition>
+        </div>
       </div>
       <div class="row" id="row3">
         <div
@@ -52,19 +77,31 @@
           v-bind:class="{ 'has-text-primary glowing': isHighlighted('row3col1') }"
           id="row3col1"
           v-on:click="confirmInput($event.target.id)"
-        >{{ board[2][0] }}</div>
+        >
+          <transition name="fade">
+            <span :key="board[2][0]">{{ board[2][0] }}</span>
+          </transition>
+        </div>
         <div
           class="cell"
           v-bind:class="{ 'has-text-primary glowing': isHighlighted('row3col2') }"
           id="row3col2"
           v-on:click="confirmInput($event.target.id)"
-        >{{ board[2][1] }}</div>
+        >
+          <transition name="fade">
+            <span :key="board[2][1]">{{ board[2][1] }}</span>
+          </transition>
+        </div>
         <div
           class="cell"
           v-bind:class="{ 'has-text-primary glowing': isHighlighted('row3col3') }"
           id="row3col3"
           v-on:click="confirmInput($event.target.id)"
-        >{{ board[2][2] }}</div>
+        >
+          <transition name="fade">
+            <span :key="board[2][2]">{{ board[2][2] }}</span>
+          </transition>
+        </div>
       </div>
     </div>
     <div>
@@ -76,7 +113,7 @@
 </template>
 
 <script>
-import { validInput, getIndex, checkStatus } from "@/game.js";
+import { validInput, getIndex, checkStatus, computerChoice } from "@/game.js";
 
 export default {
   computed: {
@@ -139,13 +176,19 @@ export default {
   },
   created() {
     console.log(this.getBoard);
+    console.log("p1: ", this.getPlayerOne);
+    console.log("p2: ", this.getPlayerTwo);
     this.board = this.getBoard;
+    //executes computerMove function to catch condition where both players are computer players
+    this.computerMove();
   },
   watch: {},
   methods: {
     validInput,
     getIndex,
     checkStatus,
+    computerChoice,
+
     updateBoard(i, j, value) {
       console.log("updating board...");
       console.log(i, j, value);
@@ -157,13 +200,6 @@ export default {
       this.$store.commit("newTurn");
       //checkGameComplete();
     },
-    /*
-    getTurn() {
-      console.log("*** getTurn function ***");
-      console.log("p1 has turn?", this.playerOneHasTurn);
-      return this.playerOneHasTurn ? this.playerMarks[0] : this.playerMarks[1];
-    },
-    */
     closeGame() {},
     resetGame() {
       console.log("resetting game...");
@@ -210,6 +246,7 @@ export default {
           this.updateBoard(i, j, this.playerMarks[1]);
         }
         this.nextIteration();
+        this.computerMove();
       }
     },
     nextIteration() {
@@ -234,10 +271,59 @@ export default {
       else if (status === "draw") {
         this.endRound();
       }
+
       //else show win condition and end round
       else {
         this.highlightBoard(status);
         this.endRound(this.getTurn);
+      }
+    },
+
+    async computerMove() {
+      //perform returnconditions to exit loop
+      console.log("hello from computermove funciton");
+      if (this.isEnded) return;
+      if (this.getPlayerOne === "human" && this.playerOneHasTurn) return;
+      if (this.getPlayerTwo === "human" && this.playerTwoHasTurn) return;
+
+      //Add delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      if (this.getPlayerOne === "cpuEasy" && this.playerOneHasTurn) {
+        let [i, j] = this.computerChoice("easy", this.board);
+        console.log("i: ", i);
+        console.log("j: ", j);
+
+        this.updateBoard(i, j, this.playerMarks[0]);
+
+        this.nextIteration();
+      } else if (this.getPlayerTwo === "cpuEasy" && this.playerTwoHasTurn) {
+        let [i, j] = this.computerChoice("easy", this.board);
+        console.log("i: ", i);
+        console.log("j: ", j);
+
+        this.updateBoard(i, j, this.playerMarks[1]);
+        this.nextIteration();
+      } else if (this.getPlayerOne === "cpuHard" && this.playerOneHasTurn) {
+        let [i, j] = this.computerChoice("hard", this.board);
+        console.log("i: ", i);
+        console.log("j: ", j);
+
+        this.updateBoard(i, j, this.playerMarks[0]);
+      } else if (this.getPlayerTwo === "cpuHard" && this.playerTwoHasTurn) {
+        let [i, j] = this.computerChoice("hard", this.board);
+        console.log("i: ", i);
+        console.log("j: ", j);
+
+        this.updateBoard(i, j, this.playerMarks[1]);
+      }
+
+      //check if no human player is present - executes a loop until endcondition is met
+      if (
+        (this.getPlayerOne === "cpuEasy" || this.getPlayerOne === "cpuHard") &&
+        (this.getPlayerTwo === "cpuEasy" || this.getPlayerTwo === "cpuHard")
+      ) {
+        this.computerMove();
       }
     }
   }
@@ -274,6 +360,19 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.fade-enter-active {
+  animation: fadeIn 0.5s;
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
 }
 
 .board {

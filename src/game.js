@@ -129,6 +129,8 @@ const checkStatus = (mark, board, turnCount) => {
 		board[2][0] === mark
 	) {
 		return [gridReference[0][2], gridReference[1][1], gridReference[2][0]];
+
+		//return false if game can continue...
 	} else {
 		return false;
 	}
@@ -140,7 +142,110 @@ const isDraw = (board, turnCount) => {
 	else return false;
 };
 
-export { validInput, getIndex, checkStatus };
+const computerChoice = (difficulty, board) => {
+	if (difficulty === 'medium') {
+		let rng = Math.floor(Math.random() * 2);
+		rng > 1 ? (difficulty = 'easy') : (difficulty = 'hard');
+	}
+	//Dummy algorithm for computer to make a random choice
+	else if (difficulty === 'easy') {
+		let conditionMet = false;
+		let i = 0;
+		let j = 0;
+		while (!conditionMet) {
+			i = Math.floor(Math.random() * board.length);
+			j = Math.floor(Math.random() * board[i].length);
+			console.log("I'm trying to choose " + i + ' and ' + j);
+
+			//check if choice is valid option
+			if (board[i][j] === '') {
+				conditionMet = true;
+			}
+		}
+		console.log(
+			`I have chosen ${i} and ${j}, and trying to add this to gridReference[i][j]`
+		);
+		return [i, j];
+	} else {
+		console.log('minmax algorithm is yet to be implemented');
+	}
+
+	//if (difficulty === 'hard') {
+	//minmax(board, player)
+	//}
+};
+
+export { validInput, getIndex, checkStatus, computerChoice };
+
+//AI Helperfunction - find out how good a board is
+/*
+getScore() {
+    let score = 0;
+    if (this.playerHas3InARow('x')) {
+      score -= 100;
+    }
+    if (this.playerHas3InARow('o')) {
+      score += 100;
+    }
+    return score;
+}  
+
+playerHas3InARow(player) {
+    // Horizontal rows
+    for (let i=0; i<3; i++) {
+      if (this.cells[0][i] === player && this.cells[1][i] === player && this.cells[2][i] === player) {
+        return true;
+      }
+    }
+
+    // Vertical rows
+    for (let i=0; i<3; i++) {
+      if (this.cells[i][0] === player && this.cells[i][1] === player && this.cells[i][2] === player) {
+        return true;
+      }
+    }
+
+    // Diagonals
+    if (this.cells[0][0] === player && this.cells[1][1] === player && this.cells[2][2] === player) {
+      return true;
+    }
+    if (this.cells[1][0] === player && this.cells[1][1] === player && this.cells[0][2] === player) {
+      return true;
+    }
+
+    return false;
+  }
+
+  isGameOver() {
+    return this.getPossibleMoves().length === 0 || this.playerHas3InARow('x') || this.playerHas3InARow('o');
+  }
+
+  clone() {
+    let clone = new Board();
+
+    for (let i=0; i<3; i++) {
+      for (let j=0; j<3; j++) {
+        clone.cells[i][j] = this.cells[i][j];
+      }
+    }
+
+    return clone;
+  }
+
+  getPossibleMoves() {
+    let moves = [];
+    for (let i=0; i<3; i++) {
+      for (let j=0; j<3; j++) {
+        if (this.cells[i][j] === '') {
+          moves.push({x: i, y: j});
+        }
+      }
+    }
+    return moves;
+  }
+}
+
+
 
 /*
 const Game = () => {
@@ -298,27 +403,7 @@ const Game = () => {
         
     }
     
-    //Dummy algorithm for computer to make a random choice
-    const computerChoice = (difficult) => {
-        if (!difficult) {
-            let i = Math.floor(Math.random() * board.length);
-            let j = Math.floor(Math.random() * board[i].length);
-            console.log("I'm trying to choose " + i + " and " + j);
-            //check if choice is valid option
-            if (checkOptions(i, j)) {
-                console.log("I have chosen" + i + " and " + j + "and trying to add this to " + gridReference[i][j]);
-                return (gridReference[i][j], getElement());
-            
-                
-
-            } else {
-            computerChoice(difficult);
-        }
-        else {
-            console.log('minmax algorithm is yet to be implemented');
-        }
-        
-    }
+   
 
     
 
