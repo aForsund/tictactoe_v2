@@ -1,9 +1,24 @@
 <template>
-  <div>
-    <div>
-      <p>Player One: {{ getPlayerOneScore }}</p>
-      <p>Player Two: {{ getPlayerOneScore }}</p>
-      <p>Turn: {{ getTurnCount }}</p>
+  <div class="container">
+    <div class="has-text-primary columns info">
+      <div class="column">
+        <p>
+          <span class="is-bold">X</span>
+          : {{ getPlayerOne }}
+        </p>
+        <p>Score: {{ getPlayerOneScore }}</p>
+      </div>
+      <div class="column is-narrow">
+        <p>Turn: {{ getTurnCount }}</p>
+      </div>
+
+      <div class="column">
+        <p>
+          <span class="is-bold">O</span>
+          : {{ getPlayerTwo }}
+        </p>
+        <p>Score: {{ getPlayerOneScore }}</p>
+      </div>
     </div>
     <div class="board">
       <div class="row" id="row1">
@@ -104,10 +119,11 @@
         </div>
       </div>
     </div>
-    <div>
-      <p>{{ statusMessage }}</p>
-      <button v-if="isEnded">Play again</button>
-      <button v-on:click="resetGame">Reset</button>
+    <div class="status columns">
+      <p class="column is-9" v-if="!isEnded">It's {{ getTurn }}'s turn</p>
+      <p class="column is-9" v-if="isEnded">{{ statusMessage }}</p>
+      <button class="column is-3 button is-primary is-pulled-right" v-if="isEnded">Play again</button>
+      <button class="column is-3 button is-primary is-pulled-right" v-on:click="resetGame">Reset</button>
     </div>
   </div>
 </template>
@@ -146,8 +162,6 @@ export default {
       return this.$store.state.ticTacToeGame.isEnded;
     },
     getTurn() {
-      console.log("*** getTurn function ***");
-      console.log("p1 has turn?", this.playerOneHasTurn);
       return this.playerOneHasTurn ? this.playerMarks[0] : this.playerMarks[1];
     },
     getTurnCount() {
@@ -305,13 +319,21 @@ export default {
         this.updateBoard(i, j, this.playerMarks[1]);
         this.nextIteration();
       } else if (this.getPlayerOne === "cpuHard" && this.playerOneHasTurn) {
-        let [i, j] = this.computerChoice("hard", this.board);
+        let [i, j] = this.computerChoice(
+          "hard",
+          this.board,
+          this.playerMarks[0]
+        );
         console.log("i: ", i);
         console.log("j: ", j);
 
         this.updateBoard(i, j, this.playerMarks[0]);
       } else if (this.getPlayerTwo === "cpuHard" && this.playerTwoHasTurn) {
-        let [i, j] = this.computerChoice("hard", this.board);
+        let [i, j] = this.computerChoice(
+          "hard",
+          this.board,
+          this.playerMarks[1]
+        );
         console.log("i: ", i);
         console.log("j: ", j);
 
@@ -380,7 +402,9 @@ export default {
   padding: 10px;
   border-radius: 5px;
   margin: 10px;
+}
 
+.container {
   display: inline-block;
 }
 
@@ -399,5 +423,11 @@ export default {
 
 .glowing {
   text-shadow: 0px 0px 6px rgba(255, 255, 255, 0.7);
+}
+.status {
+  background-color: hsl(171, 100%, 41%, 0.3);
+  border-radius: 5px;
+  margin-left: 10px;
+  margin-right: 10px;
 }
 </style>

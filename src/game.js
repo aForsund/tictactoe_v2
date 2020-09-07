@@ -15,6 +15,8 @@ const gridReference = [
 	['row3col1', 'row3col2', 'row3col3'],
 ];
 
+//const magicSquare = [8, 1, 6, 3, 5, 7, 4, 9, 2];
+
 //Receive from Vue.js instead...
 //const playerMarks = ['X', 'O'];
 
@@ -47,7 +49,7 @@ const checkStatus = (mark, board, turnCount) => {
 	//logic to check if there is a winner or there is no possible winner (draw)
 
 	//Check if there is a draw
-	if (isDraw(board, turnCount)) {
+	if (isDraw(mark, board, turnCount)) {
 		return 'draw';
 	}
 	//XXX
@@ -136,13 +138,38 @@ const checkStatus = (mark, board, turnCount) => {
 	}
 };
 
-const isDraw = (board, turnCount) => {
+const isDraw = (mark, board, turnCount) => {
 	console.log(`checking if ${board} is a draw`);
+	console.log(mark);
 	if (turnCount >= 9) return true;
-	else return false;
+
+	/*
+    //use magic square algorithm to determine if there is a possible winner
+
+    //first assign all empty fields to current player's mark
+    let flatBoard = board.join().split(',');
+    console.log('board after flatten function', board);
+    flatBoard.forEach((cell, index, arr) => {
+        if (cell === '') arr[index] = mark;
+    }
+
+    //then convert each valid field to magic square number
+    flatBoard.forEach((cell, index, arr) => {
+        if (cell === mark) arr[index] = magicSquare[index]; 
+        else arr[index] = 0;
+    })
+    
+    //then perform sum operations to determine if there is a possible win outcome for player
+    */
 };
 
-const computerChoice = (difficulty, board) => {
+/*
+const getAvaliableMoves = (board) => {
+    if (turnCount < 5) return 1;
+    else return 1;
+}
+*/
+const computerChoice = (difficulty, board, player) => {
 	if (difficulty === 'medium') {
 		let rng = Math.floor(Math.random() * 2);
 		rng > 1 ? (difficulty = 'easy') : (difficulty = 'hard');
@@ -167,15 +194,20 @@ const computerChoice = (difficulty, board) => {
 		);
 		return [i, j];
 	} else {
-		console.log('minmax algorithm is yet to be implemented');
+		console.log('minmax algorithm not yet implemented...');
+		console.log(player);
+		//minmax(board, player)
 	}
-
-	//if (difficulty === 'hard') {
-	//minmax(board, player)
-	//}
 };
 
 export { validInput, getIndex, checkStatus, computerChoice };
+
+/*
+const minmax = (board, player, depth = 1) => {
+    if (isGameOver(board))
+}
+
+
 
 //AI Helperfunction - find out how good a board is
 /*
