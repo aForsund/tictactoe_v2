@@ -1,7 +1,7 @@
 <template>
   <div class="hero">
     <div class="container">
-      <button v-on:click="startGame" class="button is-info">This is the start game button</button>
+      <button v-on:click="startGame" class="button is-large is-info">Start Game</button>
     </div>
   </div>
 </template>

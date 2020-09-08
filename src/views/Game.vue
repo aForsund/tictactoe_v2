@@ -1,15 +1,12 @@
 <template>
-  <div>
-    <section class="hero is-small is-dark is-bold">
-      <div class="hero-body has-text-centered">
-        <h1 class="title">Tic Tac Toe</h1>
-        <div v-if="!isActive">
-          <Options />
-          <Start />
-        </div>
-        <TicTacToe v-if="isActive" />
-      </div>
-    </section>
+  <div class="container has-text-centered is-unselectable">
+    <div v-if="!isActive">
+      <Options />
+      <Start />
+    </div>
+    <div v-if="isActive">
+      <TicTacToe />
+    </div>
   </div>
 </template>
 

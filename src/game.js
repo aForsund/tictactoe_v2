@@ -48,18 +48,10 @@ const checkComplete = () => {
 const checkStatus = (mark, board, turnCount) => {
 	//logic to check if there is a winner or there is no possible winner (draw)
 
-	//Check if there is a draw
-	if (isDraw(mark, board, turnCount)) {
-		return 'draw';
-	}
 	//XXX
 	//
 	//
-	else if (
-		board[0][0] === mark &&
-		board[0][1] === mark &&
-		board[0][2] === mark
-	) {
+	if (board[0][0] === mark && board[0][1] === mark && board[0][2] === mark) {
 		return [gridReference[0][0], gridReference[0][1], gridReference[0][2]];
 	}
 	//
@@ -131,16 +123,16 @@ const checkStatus = (mark, board, turnCount) => {
 		board[2][0] === mark
 	) {
 		return [gridReference[0][2], gridReference[1][1], gridReference[2][0]];
-
-		//return false if game can continue...
+	}
+	//return false if game can continue...
+	else if (isDraw(turnCount)) {
+		return 'draw';
 	} else {
 		return false;
 	}
 };
 
-const isDraw = (mark, board, turnCount) => {
-	console.log(`checking if ${board} is a draw`);
-	console.log(mark);
+const isDraw = (turnCount) => {
 	if (turnCount >= 9) return true;
 
 	/*
@@ -169,7 +161,7 @@ const getAvaliableMoves = (board) => {
     else return 1;
 }
 */
-const computerChoice = (difficulty, board, player) => {
+const computerChoice = (difficulty, board) => {
 	if (difficulty === 'medium') {
 		let rng = Math.floor(Math.random() * 2);
 		rng > 1 ? (difficulty = 'easy') : (difficulty = 'hard');
@@ -195,7 +187,7 @@ const computerChoice = (difficulty, board, player) => {
 		return [i, j];
 	} else {
 		console.log('minmax algorithm not yet implemented...');
-		console.log(player);
+
 		//minmax(board, player)
 	}
 };

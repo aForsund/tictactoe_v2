@@ -12,12 +12,12 @@
 export default {
   props: {
     isActive: false
-  }
+  },
   data() {
     return {
       option: 'option'
     }
-  }
+  },
   model: {
     prop: 'selected',
     event: 'onSelected'

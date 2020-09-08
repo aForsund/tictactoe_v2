@@ -1,6 +1,7 @@
 <template>
-  <div>
+  <div class="container">
     <h1 class="title">Rankings</h1>
+    
     <Search @search-string="search" />
     <PlayerCard v-for="player in playerList" :key="player._id" :player="player" />
   </div>

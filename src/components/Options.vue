@@ -1,38 +1,40 @@
 <template>
-  <div>
-    <div class="container">
-      <h1 class="title">Please select options</h1>
-      <p>Player 1:</p>
-      <button
-        v-bind:class="[defaultClass, options.player1 === 'human' ? activeClass : '']"
-        v-on:click="selectPlayer1('human')"
-      >Human</button>
-      <button
-        v-bind:class="[defaultClass, options.player1 === 'cpuEasy' ? activeClass : '']"
-        v-on:click="selectPlayer1('cpuEasy')"
-      >CPU Easy</button>
-      <button
-        v-bind:class="[defaultClass, options.player1 === 'cpuHard' ? activeClass : '']"
-        v-on:click="selectPlayer1('cpuHard')"
-      >CPU Hard</button>
-      <p>Player 2:</p>
-      <button
-        v-bind:class="[defaultClass, options.player2 === 'human' ? activeClass : '']"
-        v-on:click="selectPlayer2('human')"
-      >Human</button>
-      <button
-        v-bind:class="[defaultClass, options.player2 === 'cpuEasy' ? activeClass : '']"
-        v-on:click="selectPlayer2('cpuEasy')"
-      >CPU Easy</button>
-      <button
-        v-bind:class="[defaultClass, options.player2 === 'cpuHard' ? activeClass : '']"
-        v-on:click="selectPlayer2('cpuHard')"
-      >CPU Hard</button>
+  <div class="container">
+    <h1 class="title">Please select options</h1>
 
-      <p>Options are: {{ options.player1 }}, {{ options.player2 }}</p>
-
-      <button class="button is-danger" v-on:click="startGame">Start Game</button>
-    </div>
+    <p class="mb-4 is-size-4">Player 1:</p>
+    <button
+      class="opt"
+      v-bind:class="[defaultClass, options.player1 === 'human' ? activeClass : '']"
+      v-on:click="selectPlayer1('human')"
+    >Human</button>
+    <button
+      class="opt"
+      v-bind:class="[defaultClass, options.player1 === 'cpuEasy' ? activeClass : '']"
+      v-on:click="selectPlayer1('cpuEasy')"
+    >CPU Easy</button>
+    <button
+      class="opt"
+      v-bind:class="[defaultClass, options.player1 === 'cpuHard' ? activeClass : '']"
+    >CPU Hard</button>
+    <p class="mt-4 mb-4 is-size-4">Player 2:</p>
+    <button
+      class="opt"
+      v-bind:class="[defaultClass, options.player2 === 'human' ? activeClass : '']"
+      v-on:click="selectPlayer2('human')"
+    >Human</button>
+    <button
+      class="opt"
+      v-bind:class="[defaultClass, options.player2 === 'cpuEasy' ? activeClass : '']"
+      v-on:click="selectPlayer2('cpuEasy')"
+    >CPU Easy</button>
+    <button
+      class="opt"
+      v-bind:class="[defaultClass, options.player2 === 'cpuHard' ? activeClass : '']"
+    >CPU Hard</button>
+    <p class="mb-4"></p>
+    <h1 class="title">{{ options.player1 }} vs {{ options.player2 }}</h1>
+    <p class="mb-4"></p>
   </div>
 </template>
 
@@ -48,8 +50,8 @@ export default {
   },
   data() {
     return {
-      defaultClass: "button is-primary",
-      activeClass: "is-active",
+      defaultClass: "button is-dark",
+      activeClass: "is-primary is-active",
       options: {
         player1: "",
         player2: ""
@@ -76,4 +78,10 @@ export default {
   }
 };
 </script>
+
+<style scoped>
+.opt {
+  margin: 0 0.5rem;
+}
+</style>
 

@@ -1,25 +1,28 @@
 <template>
-  <div class="container">
-    <div class="has-text-primary columns info">
-      <div class="column">
-        <p>
-          <span class="is-bold">X</span>
-          : {{ getPlayerOne }}
-        </p>
-        <p>Score: {{ getPlayerOneScore }}</p>
+  <div class="container has-text-centered tictactoe">
+    <transition name="fade">
+      <div class="columns is-mobile">
+        <div class="column">
+          <div>
+            <h1 class="subtitle">X: {{ getPlayerOne }}</h1>
+            <h1 class="title">{{ getPlayerOneScore }}</h1>
+          </div>
+        </div>
+        <div class="column is-narrow">
+          <div>
+            <h1 class="subtitle">Turn</h1>
+            <h1 class="title">{{ getTurnCount }}</h1>
+          </div>
+        </div>
+        <div class="column">
+          <div>
+            <h1 class="subtitle">O: {{ getPlayerTwo }}</h1>
+            <h1 class="title">{{ getPlayerTwoScore }}</h1>
+          </div>
+        </div>
       </div>
-      <div class="column is-narrow">
-        <p>Turn: {{ getTurnCount }}</p>
-      </div>
-
-      <div class="column">
-        <p>
-          <span class="is-bold">O</span>
-          : {{ getPlayerTwo }}
-        </p>
-        <p>Score: {{ getPlayerOneScore }}</p>
-      </div>
-    </div>
+    </transition>
+    <!-- board class -->
     <div class="board">
       <div class="row" id="row1">
         <div
@@ -119,11 +122,27 @@
         </div>
       </div>
     </div>
-    <div class="status columns">
-      <p class="column is-9" v-if="!isEnded">It's {{ getTurn }}'s turn</p>
-      <p class="column is-9" v-if="isEnded">{{ statusMessage }}</p>
-      <button class="column is-3 button is-primary is-pulled-right" v-if="isEnded">Play again</button>
-      <button class="column is-3 button is-primary is-pulled-right" v-on:click="resetGame">Reset</button>
+    <!-- board end -->
+    <div class="container has-text-centered mt-4 mb-2">
+      <transition name="fade">
+        <div
+          class="notification is-rounded info pt-1"
+          v-bind:class="isEnded ? 'is-primary' : 'is-dark'"
+          v-on:click="handleClick"
+        >
+          <p class="is-size-3">
+            <span v-if="isEnded">{{ statusMessage }}</span>
+            <span v-if="!isEnded">It's {{ getTurn }}'s turn</span>
+          </p>
+          <p v-if="isEnded" class="is-size-6">Press to play again</p>
+        </div>
+      </transition>
+    </div>
+
+    <div class="container has-text-centered">
+      <button class="button is-info opt" v-on:click="resetGame">Reset</button>
+
+      <button class="button is-danger opt" v-on:click="closeGame">Close</button>
     </div>
   </div>
 </template>
@@ -185,7 +204,7 @@ export default {
       playerMarks: ["X", "O"],
       playerOneScore: 0,
       playerTwoScore: 0,
-      statusMessage: "Hello, this is the status message"
+      statusMessage: " "
     };
   },
   created() {
@@ -202,33 +221,51 @@ export default {
     getIndex,
     checkStatus,
     computerChoice,
-
+    handleClick() {
+      console.log("handleClick method");
+      if (this.isEnded) this.newRound();
+    },
+    newRound() {
+      this.$store.commit("newRound");
+      this.board = this.getBoard;
+      this.computerMove();
+    },
     updateBoard(i, j, value) {
-      console.log("updating board...");
-      console.log(i, j, value);
+      console.log(
+        "value from updateboard *******************",
+        value,
+        "-->",
+        i,
+        j
+      );
       this.board[i].splice(j, 1, value);
+      console.log("this.board after splice: ", this.board);
       this.$store.commit("updateBoard", this.board);
     },
     newTurn() {
-      console.log("newturn function...");
       this.$store.commit("newTurn");
-      //checkGameComplete();
     },
-    closeGame() {},
+    closeGame() {
+      this.$store.commit("resetGame");
+      this.$store.commit("closeGame");
+    },
     resetGame() {
-      console.log("resetting game...");
       this.$store.commit("resetGame");
       this.board = this.getBoard;
+      this.computerMove();
     },
     endRound(result) {
       if (result === "X") {
         this.statusMessage = "PlayerOne has won!";
+
+        this.$store.commit("endRound", this.playerMarks[0]);
       } else if (result === "O") {
         this.statusMessage = "PlayerTwo has won!";
+        this.$store.commit("endRound", this.playerMarks[1]);
       } else {
         this.statusMessage = "It's a draw!";
+        this.$store.commit("endRound", "draw");
       }
-      this.$store.commit("endRound");
     },
     highlightBoard(idArray) {
       this.$store.commit("highlightBoard", idArray);
@@ -238,7 +275,7 @@ export default {
     },
 
     confirmInput(event) {
-      console.log("confirm input method");
+      console.log("confirm input method *******");
       console.log(event, this.board);
       //Check if input is valid
       if (this.validInput(event, this.board)) {
@@ -251,16 +288,18 @@ export default {
           console.log("its player 1's turn");
           let [i, j] = this.getIndex(event);
           this.updateBoard(i, j, this.playerMarks[0]);
+          this.nextIteration();
+          this.computerMove();
         }
 
         //Check if playerTwo is human and has next turn
-        if (this.getPlayerTwo === "human" && this.playerTwoHasTurn) {
+        else if (this.getPlayerTwo === "human" && this.playerTwoHasTurn) {
           console.log("its player 2's turn");
           let [i, j] = this.getIndex(event);
           this.updateBoard(i, j, this.playerMarks[1]);
+          this.nextIteration();
+          this.computerMove();
         }
-        this.nextIteration();
-        this.computerMove();
       }
     },
     nextIteration() {
@@ -296,6 +335,7 @@ export default {
     async computerMove() {
       //perform returnconditions to exit loop
       console.log("hello from computermove funciton");
+
       if (this.isEnded) return;
       if (this.getPlayerOne === "human" && this.playerOneHasTurn) return;
       if (this.getPlayerTwo === "human" && this.playerTwoHasTurn) return;
@@ -305,17 +345,10 @@ export default {
 
       if (this.getPlayerOne === "cpuEasy" && this.playerOneHasTurn) {
         let [i, j] = this.computerChoice("easy", this.board);
-        console.log("i: ", i);
-        console.log("j: ", j);
-
         this.updateBoard(i, j, this.playerMarks[0]);
-
         this.nextIteration();
       } else if (this.getPlayerTwo === "cpuEasy" && this.playerTwoHasTurn) {
         let [i, j] = this.computerChoice("easy", this.board);
-        console.log("i: ", i);
-        console.log("j: ", j);
-
         this.updateBoard(i, j, this.playerMarks[1]);
         this.nextIteration();
       } else if (this.getPlayerOne === "cpuHard" && this.playerOneHasTurn) {
@@ -362,12 +395,6 @@ export default {
 
 
 <style scoped>
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
 .row {
   display: flex;
   justify-content: center;
@@ -388,6 +415,10 @@ export default {
   animation: fadeIn 0.5s;
 }
 
+.fade-leave-active {
+  animation: fadeOut 0.5s;
+}
+
 @keyframes fadeIn {
   0% {
     opacity: 0;
@@ -397,15 +428,13 @@ export default {
   }
 }
 
-.board {
-  background-color: rgba(0, 0, 0, 0.3);
-  padding: 10px;
-  border-radius: 5px;
-  margin: 10px;
-}
-
-.container {
-  display: inline-block;
+@keyframes fadeOut {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
 }
 
 #row1col2,
@@ -422,12 +451,24 @@ export default {
 }
 
 .glowing {
-  text-shadow: 0px 0px 6px rgba(255, 255, 255, 0.7);
+  text-shadow: 0px 0px 6px hsl(171, 100%, 41%);
 }
 .status {
   background-color: hsl(171, 100%, 41%, 0.3);
   border-radius: 5px;
-  margin-left: 10px;
-  margin-right: 10px;
+}
+
+.tictactoe {
+  max-width: 400px;
+}
+
+.info {
+  height: 5rem;
+}
+.opt {
+  width: calc(20% - 0.5rem);
+  margin: 0 0.5rem;
 }
 </style>
+
+

@@ -4,7 +4,7 @@
       <div class="field">
         <label class="label">Name: {{ test }}</label>
         <div class="control">
-          <input class="input" v-model="test" type="text" @keyup.enter="sendRequest" />
+          <input class="input is-dark" v-model="test" type="text" @keyup.enter="sendRequest" />
         </div>
         <button v-on:click="sendRequest" class="button is-primary">Search</button>
       </div>
