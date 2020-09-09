@@ -1,7 +1,7 @@
 const express = require('express');
 const path = require('path');
 const passport = require('passport');
-const connectDB = require('./config/database');
+//const connectDB = require('./config/database');
 
 require('dotenv').config();
 
@@ -9,7 +9,7 @@ require('dotenv').config();
 const app = express();
 
 //Configure the DB and open a global connection
-connectDB();
+//connectDB();
 
 //Configure DB models
 require('./models/user');
@@ -43,10 +43,6 @@ app.use('/api/auth', authRoute);
 app.use('/api/user', userRoute);
 app.use('/api/game', gameRoute);
 
-//Handle production
-if (process.env.NODE_ENV === 'production') {
-	//Static folder
-	app.get(/.*/, (req, res) => res.sendFile(__dirname + '/index.html'));
-}
+app.get(/.*/, (req, res) => res.sendFile(__dirname + '/index.html'));
 
 app.listen(3000, () => console.log('I am alive...'));

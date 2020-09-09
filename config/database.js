@@ -1,18 +1,23 @@
 const mongoose = require('mongoose');
+const config = require('config');
+const db = config.get('mongoURI');
 
-require('dotenv').config();
+console.log('hello from database.js');
+const connectDB = async () => {
+	try {
+		console.log('trying to connect to db...');
+		await mongoose.connect(db, {
+			useNewUrlParser: true,
+			useUnifiedTopology: true,
+			useFindAndModify: false,
+			useUnifiedTopology: true,
+		});
+		console.log('mongoDB connected...');
+	} catch (err) {
+		console.log(err.message);
+		//Exit process with failure
+		process.exit(1);
+	}
+};
 
-const devConnection = process.env.DATABASE_URL;
-//const prodConnection = process.env.DB_STRING_PROD;
-
-//change to prodConnection when deploying
-mongoose.connect(devConnection, { useNewUrlParser: true, useUnifiedTopology: true });
-
-//Display status for debugging - remove for production
-const db = mongoose.connection;
-db.on('error', error => console.log(error));
-db.once('open', () => console.log('Connected to Database'));
-
-
-
-
+module.exports = connectDB;
