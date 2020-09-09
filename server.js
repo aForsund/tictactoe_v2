@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
 const passport = require('passport');
+const connectDB = require('./config/database');
 
 require('dotenv').config();
 
@@ -8,7 +9,7 @@ require('dotenv').config();
 const app = express();
 
 //Configure the DB and open a global connection
-require('./config/database');
+connectDB();
 
 //Configure DB models
 require('./models/user');
