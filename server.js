@@ -27,7 +27,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 //Enable express to serve static files
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(__dirname, '/public/'));
 
 //Import routes
 const routes = require('./routes');
@@ -43,7 +43,7 @@ app.use('/api/auth', authRoute);
 app.use('/api/user', userRoute);
 app.use('/api/game', gameRoute);
 
-app.get('/.*/', (req, res) => res.sendFile(__dirname + '/public/'));
+app.get('/.*/', (req, res) => res.sendFile(__dirname + '/public/index.html'));
 
 const PORT = process.env.PORT || 5000;
 
