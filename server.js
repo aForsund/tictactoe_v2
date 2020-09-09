@@ -47,6 +47,6 @@ app.use('/api/game', gameRoute);
 
 app.get('/.*/', (req, res) => res.sendFile(__dirname + '/public/index.html'));
 
-const PORT = process.env.PORT || 5000;
+let port = process.env.PORT || 5000;
 
-app.listen(5000, () => console.log(`Server started on port ${PORT}`));
+app.listen(port, () => console.log(`Server started on port ${PORT}`));
