@@ -43,6 +43,8 @@ app.use('/api/auth', authRoute);
 app.use('/api/user', userRoute);
 app.use('/api/game', gameRoute);
 
-app.get(/.*/, (req, res) => res.sendFile(__dirname + '/index.html'));
+app.get('*', (req, res) =>
+	res.sendFile(path.resolve(__dirname, 'public', 'index.html'))
+);
 
-app.listen(3000, () => console.log('I am alive...'));
+app.listen(5000, () => console.log(`Server started on port 5000`));
