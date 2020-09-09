@@ -44,7 +44,7 @@ app.use('/api/user', userRoute);
 app.use('/api/game', gameRoute);
 
 app.get('*', (req, res) =>
-	res.sendFile(path.resolve(__dirname, 'public', 'index.html'))
+	res.sendFile(path.join(__dirname, 'public', 'index.html'))
 );
 
 app.listen(5000, () => console.log(`Server started on port 5000`));
