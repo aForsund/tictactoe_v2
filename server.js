@@ -1,7 +1,6 @@
 const express = require('express');
 const path = require('path');
 const passport = require('passport');
-const cors = require('cors');
 
 require('dotenv').config();
 
@@ -22,11 +21,6 @@ require('./config/passport')(passport);
 app.use(passport.initialize());
 
 // *** Explain this ***
-
-//Enable cors
-if (process.env.NODE_ENV !== 'production') {
-	app.use(cors());
-}
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
