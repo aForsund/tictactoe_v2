@@ -73,20 +73,16 @@ const authenticateToken = (req, res, next) => {
 };
 
 //Search users
-router.get(
-	'/search/:name',
-	passport.authenticate('jwt', { session: false }),
-	async function (req, res) {
-		try {
-			let search = await User.find({
-				username: { $regex: req.params.name, $options: 'i' },
-			});
-			res.json(search);
-		} catch (err) {
-			res.status(500).json({ message: err.message });
-		}
+router.get('/search/:name', async function (req, res) {
+	try {
+		let search = await User.find({
+			username: { $regex: req.params.name, $options: 'i' },
+		});
+		res.json(search);
+	} catch (err) {
+		res.status(500).json({ message: err.message });
 	}
-);
+});
 
 //Test JWT
 
