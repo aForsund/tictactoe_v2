@@ -1,3 +1,6 @@
+//DELETE ME
+
+/*
 const router = require('express').Router();
 const path = require('path');
 
@@ -24,3 +27,5 @@ router.post('/test', (req, res, next) => {
 
 
 module.exports = router;
+
+*/

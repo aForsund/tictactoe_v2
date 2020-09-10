@@ -1,7 +1,6 @@
 const express = require('express');
-const path = require('path');
+//const path = require('path');
 const passport = require('passport');
-//const connectDB = require('./config/database');
 
 require('dotenv').config();
 
@@ -9,7 +8,7 @@ require('dotenv').config();
 const app = express();
 
 //Configure the DB and open a global connection
-//connectDB();
+require('./config/database');
 
 //Configure DB models
 require('./models/user');
@@ -21,32 +20,30 @@ require('./config/passport')(passport);
 //Initialize passport object on every request
 app.use(passport.initialize());
 
-// *** Explain this ***
-
+//Body parser middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-//Enable express to serve static files
-app.use(express.static(__dirname + '/public'));
-
 //Import routes
-/*
-const routes = require('./routes');
+
+//const routes = require('./routes');
 const authRoute = require('./routes/auth');
 const gameRoute = require('./routes/game');
 const userRoute = require('./routes/user');
 
 //Route middleware
-app.use(routes);
+//app.use(routes);
 
 //API function calls
 app.use('/api/auth', authRoute);
 app.use('/api/user', userRoute);
 app.use('/api/game', gameRoute);
-*/
 
-app.get('/.*/', (req, res) => res.sendFile(__dirname + '/public/index.html'));
+//Enable express to serve static files
+app.use(express.static(__dirname + '/public/'));
 
-let port = process.env.PORT || 5000;
+app.get('*', (req, res) => res.sendFile(__dirname + '/public/index.html'));
+
+let port = process.env.PORT || 3000;
 
 app.listen(port, () => console.log(`Server started on port ${port}`));
