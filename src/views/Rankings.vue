@@ -1,9 +1,11 @@
 <template>
-  <div class="container">
-    <h1 class="title">Rankings</h1>
-    
-    <Search @search-string="search" />
-    <PlayerCard v-for="player in playerList" :key="player._id" :player="player" />
+  <div class="hero-body">
+    <div class="container">
+      <h1 class="title">Rankings</h1>
+
+      <Search @search-string="search" />
+      <PlayerCard v-for="player in playerList" :key="player._id" :player="player" />
+    </div>
   </div>
 </template>
 
@@ -65,3 +67,9 @@ export default {
   }
 };
 </script>
+
+<style scoped>
+.button {
+  transition: all 0.4s;
+}
+</style>

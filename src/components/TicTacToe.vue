@@ -123,18 +123,19 @@
       </div>
     </div>
     <!-- board end -->
-    <div class="container has-text-centered mt-4 mb-2">
+    <div class="container has-text-centered mt-4 mb-2 status-message">
       <transition name="fade">
-        <div
-          class="notification is-rounded info pt-1"
-          v-bind:class="isEnded ? 'is-primary' : 'is-dark'"
-          v-on:click="handleClick"
-        >
-          <p class="is-size-3">
-            <span v-if="isEnded">{{ statusMessage }}</span>
+        <div class="pt-1" v-on:click="handleClick">
+          <p class="title">
+            <span v-if="isEnded" class="has-text-primary">{{ statusMessage }}</span>
             <span v-if="!isEnded">It's {{ getTurn }}'s turn</span>
           </p>
-          <p v-if="isEnded" class="is-size-6">Press to play again</p>
+          <p class="subtitle">
+            <span v-if="isEnded" class="has-text-primary">Press here to play again</span>
+            <span v-if="!isEnded">
+              <p class="mb-5"></p>
+            </span>
+          </p>
         </div>
       </transition>
     </div>
@@ -402,8 +403,8 @@ export default {
 }
 
 .cell {
-  width: 100px;
-  height: 100px;
+  width: 80px;
+  height: 80px;
   font-size: 42px;
 
   display: flex;
@@ -459,15 +460,19 @@ export default {
 }
 
 .tictactoe {
-  max-width: 400px;
+  max-width: 320px;
 }
 
 .info {
   height: 5rem;
+  transition: all 0.5s;
 }
 .opt {
   width: calc(20% - 0.5rem);
   margin: 0 0.5rem;
+}
+.status-message {
+  height: 5.25rem;
 }
 </style>
 

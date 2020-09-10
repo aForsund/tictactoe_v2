@@ -7,6 +7,7 @@ Vue.use(Vuex);
 
 export default new Vuex.Store({
 	state: {
+		showNav: false,
 		searchArray: [],
 		setCount: 0,
 		ticTacToeGame: {
@@ -34,6 +35,13 @@ export default new Vuex.Store({
 		},
 	},
 	mutations: {
+		clickNav(state) {
+			if (state.showNav === false) state.showNav = true;
+			else if (state.showNav === true) state.showNav = false;
+		},
+		clickLink(state) {
+			state.showNav = false;
+		},
 		updatePlayerOne(state, option) {
 			state.ticTacToeGame.playerOne.player = option;
 		},

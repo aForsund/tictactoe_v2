@@ -1,12 +1,12 @@
 <template>
-  <div class="card">
+  <div class="card notification is-info">
     <div class="card-content">
       <div class="field">
-        <label class="label">Name: {{ test }}</label>
+        <label class="label has-text-white">Name: {{ test }}</label>
         <div class="control">
-          <input class="input is-dark" v-model="test" type="text" @keyup.enter="sendRequest" />
+          <input class="input" v-model="test" type="text" @keyup.enter="sendRequest" />
         </div>
-        <button v-on:click="sendRequest" class="button is-primary">Search</button>
+        <button v-on:click="sendRequest" class="button is-link mt-2">Search</button>
       </div>
     </div>
   </div>
@@ -26,3 +26,9 @@ export default {
   }
 };
 </script>
+
+<style scoped>
+.button {
+  transition: all 0.4s;
+}
+</style>

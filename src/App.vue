@@ -1,6 +1,6 @@
 <template>
-  <div id="app" class="hero is-dark is-fullheight is-bold">
-    <div class="hero head">
+  <section id="app" class="hero is-dark is-fullheight is-bold">
+    <div class="hero-head">
       <NavBar />
     </div>
     <div class="hero-body">
@@ -18,7 +18,7 @@
         </a>
       </span>
     </div>
-  </div>
+  </section>
 </template>
 
 <script>
