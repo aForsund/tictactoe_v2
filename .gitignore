@@ -1,7 +1,7 @@
 .env
-node_modules
-/client
-/public
+/Server/node_modules
+
+/Server/public
 requests.rest
 
 .DS_Store
