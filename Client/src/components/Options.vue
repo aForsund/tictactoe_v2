@@ -1,80 +1,85 @@
 <template>
-  <div class="container">
+  <div class="container has-text-centered">
     <h1 class="title">Please select options</h1>
 
-    <p class="mb-4 is-size-4">Player 1:</p>
-    <button
-      class="opt"
-      v-bind:class="[defaultClass, options.player1 === 'human' ? activeClass : '']"
-      v-on:click="selectPlayer1('human')"
-    >Human</button>
-    <button
-      class="opt"
-      v-bind:class="[defaultClass, options.player1 === 'cpuEasy' ? activeClass : '']"
-      v-on:click="selectPlayer1('cpuEasy')"
-    >CPU Easy</button>
-    <button
-      class="opt"
-      v-bind:class="[defaultClass, options.player1 === 'cpuHard' ? activeClass : '']"
-    >CPU Hard</button>
-    <p class="mt-4 mb-4 is-size-4">Player 2:</p>
-    <button
-      class="opt"
-      v-bind:class="[defaultClass, options.player2 === 'human' ? activeClass : '']"
-      v-on:click="selectPlayer2('human')"
-    >Human</button>
-    <button
-      class="opt"
-      v-bind:class="[defaultClass, options.player2 === 'cpuEasy' ? activeClass : '']"
-      v-on:click="selectPlayer2('cpuEasy')"
-    >CPU Easy</button>
-    <button
-      class="opt"
-      v-bind:class="[defaultClass, options.player2 === 'cpuHard' ? activeClass : '']"
-    >CPU Hard</button>
-    <p class="mb-4"></p>
-    <h1 class="title">{{ options.player1 }} vs {{ options.player2 }}</h1>
-    <p class="mb-4"></p>
+    <p class="mb-4 is-size-4">
+      Player one:
+      {{ playerOne.cpu ? `CPU #${playerOne.difficulty}` : "Local Player" }}
+    </p>
+    <div class="columns is-centered is-vcentered">
+      <div class="column is-narrow">
+        <div class="player-select">
+          <b-switch
+            :value="playerOne.cpu"
+            type="is-success"
+            passive-type="is-primary"
+            v-model="playerOne.cpu"
+          >
+            CPU
+          </b-switch>
+        </div>
+      </div>
+
+      <div class="column is-narrow slider">
+        <b-field>
+          <b-slider
+            size="is-medium"
+            :type="playerOne.cpu ? 'is-success' : 'is-primary'"
+            :min="0"
+            :max="3"
+            :value="playerOne.difficulty"
+            v-model="playerOne.difficulty"
+            :tooltip="false"
+            @dragging="playerOne.cpu = true"
+          ></b-slider>
+        </b-field>
+      </div>
+    </div>
+
+    <p class="mt-4 mb-4 is-size-4">
+      Player two:
+      {{ playerTwo.cpu ? `CPU #${playerTwo.difficulty}` : "Local Player" }}
+    </p>
+
+    <div class="columns is-centered is-vcentered">
+      <div class="column is-narrow">
+        <div class="player-select">
+          <b-switch
+            :value="playerTwo.cpu"
+            type="is-success"
+            passive-type="is-primary"
+            v-model="playerTwo.cpu"
+          >
+            CPU
+          </b-switch>
+        </div>
+      </div>
+
+      <div class="column is-narrow slider">
+        <b-slider
+          size="is-medium"
+          :type="playerTwo.cpu ? 'is-success' : 'is-primary'"
+          :min="0"
+          :max="3"
+          :value="playerTwo.difficulty"
+          v-model="playerTwo.difficulty"
+          :tooltip="false"
+          @dragging="playerTwo.cpu = true"
+        ></b-slider>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
+import { mapState } from "vuex";
+
 export default {
   computed: {
-    getPlayerOne() {
-      return this.$store.state.ticTacToeGame.playerOne.player;
-    },
-    getPlayerTwo() {
-      return this.$store.state.ticTacToeGame.playerTwo.player;
-    }
-  },
-  data() {
-    return {
-      defaultClass: "button is-dark",
-      activeClass: "is-primary is-active",
-      options: {
-        player1: "",
-        player2: ""
-      }
-    };
-  },
-  created() {
-    this.options.player1 = this.getPlayerOne;
-    this.options.player2 = this.getPlayerTwo;
-  },
-  methods: {
-    selectPlayer1(option) {
-      this.options.player1 = option;
-      this.$store.commit("updatePlayerOne", this.options.player1);
-    },
-    selectPlayer2(option) {
-      this.options.player2 = option;
-      this.$store.commit("updatePlayerTwo", this.options.player2);
-    },
-    startGame() {
-      console.log("startGame selected with the following options:");
-      console.log(this.options);
-    }
+    ...mapState({
+      playerOne: state => state.localGameOptions.playerOne,
+      playerTwo: state => state.localGameOptions.playerTwo
+    })
   }
 };
 </script>
@@ -82,6 +87,15 @@ export default {
 <style scoped>
 .opt {
   margin: 0 0.5rem;
+}
+.options {
+  max-width: 320px;
+}
+.slider {
+  width: 130px;
+}
+.player-select {
+  width: 150px;
 }
 </style>
 

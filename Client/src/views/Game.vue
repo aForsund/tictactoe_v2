@@ -1,12 +1,13 @@
 <template>
   <div class="hero-body">
     <div class="container has-text-centered is-unselectable game">
-      <div v-if="!isActive">
+      <div v-if="!localGame && !historyView">
         <Options />
         <Start />
       </div>
-      <div v-if="isActive">
-        <TicTacToe />
+      <div>
+        <History v-if="historyView" />
+        <TicTacToe v-if="localGame" />
       </div>
     </div>
   </div>
@@ -17,17 +18,21 @@
 import Options from "@/components/Options.vue";
 import TicTacToe from "@/components/TicTacToe.vue";
 import Start from "@/components/Start.vue";
+import History from "@/components/History.vue";
+import { mapState } from "vuex";
 
 export default {
   computed: {
-    isActive() {
-      return this.$store.state.localGame.isActive;
-    }
+    ...mapState({
+      localGame: state => state.localGame.isActive,
+      historyView: state => state.history.isActive
+    })
   },
   components: {
     Options,
     TicTacToe,
-    Start
+    Start,
+    History
   }
 };
 </script>

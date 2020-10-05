@@ -47,6 +47,34 @@
       </div>
     </div>
 
+    <div class="container has-text-centered mt-4 mb-2 status-message">
+      <transition name="fade">
+        <div>
+          <div class="pt-1" v-on:click="handleClick">
+            <p class="title">
+              <span v-if="isEnded" class="has-text-primary">{{
+                statusMessage
+              }}</span>
+              <span v-if="!isEnded"
+                >It's {{ game.currentPlayer.mark }}'s turn</span
+              >
+            </p>
+            <p class="subtitle">
+              <span v-if="isEnded" class="has-text-primary"
+                >Press here to play again</span
+              >
+              <span v-if="!isEnded">
+                <p class="mb-5"></p>
+              </span>
+            </p>
+          </div>
+          <div class="pt-1" v-if="isEnded">
+            <button @click="viewHistory">View History</button>
+          </div>
+        </div>
+      </transition>
+    </div>
+
     <div class="container has-text-centered">
       <button class="button is-info opt" v-on:click="resetGame">Reset</button>
 
@@ -56,14 +84,13 @@
 </template>
 
 <script>
-/* eslint-disable */
 import { mapState } from "vuex";
 
 export default {
   computed: {
     ...mapState({
       game: state => state.localGame.instance,
-      history: state => state.localGame.instance.history,
+
       isEnded: state => state.localGame.instance.status.isEnded,
       playerOneScore: state => state.localGame.playerOneScore,
       playerTwoScore: state => state.localGame.playerTwoScore,
@@ -92,7 +119,9 @@ export default {
   },
   data() {
     return {
-      historyObj: {}
+      historyObj: {},
+      statusMessage: "Status message...",
+      processingInput: false
     };
   },
   methods: {
@@ -104,11 +133,8 @@ export default {
         id
       );
     },
-    showHistory() {
-      console.log(this.historyObj);
-    },
-    showVuexHistory() {
-      console.log(this.history);
+    viewHistory() {
+      this.$store.commit("VIEW_HISTORY");
     },
     endRound() {
       this.historyObj.history = this.history;
@@ -118,7 +144,10 @@ export default {
       this.historyObj.winCondition = this.game.status.winCondition;
       this.historyObj.board = this.game.board;
       this.$store.commit("SAVE_HISTORY", this.historyObj);
-      this.$store.commit("END_ROUND", this.game.currentPlayer.mark);
+      this.$store.commit(
+        "END_ROUND",
+        this.game.status.draw ? "draw" : this.game.currentPlayer.mark
+      );
     },
     resetGame() {
       this.$store.commit("RESET_GAME");
@@ -130,7 +159,16 @@ export default {
     },
     confirmInput(id) {
       console.log(id);
-      this.game.confirmInput(id);
+      if (this.processingInput === true) return;
+      else {
+        this.processingInput = true;
+        if (!this.isEnded) this.game.confirmInput(id);
+        this.processingInput = false;
+      }
+    },
+    handleClick() {
+      console.log("handleClick method");
+      if (this.isEnded) this.newGame();
     }
   }
 };
@@ -202,7 +240,7 @@ export default {
 }
 
 .glowing {
-  text-shadow: 0px 0px 6px hsl(171, 100%, 41%);
+  text-shadow: 0px 0px 6px #8c67ef;
 }
 .status {
   background-color: hsl(171, 100%, 41%, 0.3);
