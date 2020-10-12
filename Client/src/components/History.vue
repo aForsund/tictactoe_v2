@@ -1,9 +1,50 @@
 <template>
   <div class="container has-text-centered tictactoe">
     <h1 class="title">HISTORY MODE</h1>
-    <p>{{ history }}</p>
+    <div class="notification is-primary">
+      <p>Winner: {{ result.outcome.mark }}</p>
+      <p>Turns: {{ history.length }}</p>
+      <p>
+        Player:
+        {{
+          result.outcome.cpu
+            ? `CPU#${result.outcome.difficulty}`
+            : "Local Player"
+        }}
+      </p>
+    </div>
 
-    <button class="button is-danger opt" v-on:click="closeHistory">
+    <div class="board mb-4">
+      <div v-for="(n, i) in board" :key="i" :id="`row${i + 1}`" class="row">
+        <div
+          v-for="(n, j) in board[i]"
+          class="cell"
+          v-bind:id="`row${i + 1}col${j + 1}`"
+          :key="`row${i + 1}col${j + 1}`"
+          v-bind:class="{
+            'has-text-primary glowing': isHighlighted(`row${i + 1}col${j + 1}`)
+          }"
+        >
+          <transition name="fade"
+            ><span>{{ board[i][j] }}</span></transition
+          >
+        </div>
+      </div>
+    </div>
+    <b-steps v-model="activeStep" animated rounded has-navigation>
+      <template v-for="(n, i) in history">
+        <b-step-item
+          :step="i + 1"
+          :key="`turn${i + 1}`"
+          :clickable="true"
+        ></b-step-item>
+      </template>
+    </b-steps>
+    <h2 class="subtitle">
+      {{ history[activeStep].player.mark }} on {{ history[activeStep].move }}
+    </h2>
+
+    <button class="button is-danger opt" @click="closeHistory">
       Close
     </button>
   </div>
@@ -15,79 +56,37 @@ import { mapState } from "vuex";
 export default {
   computed: {
     ...mapState({
-      history: state => state.localGame.instance.history,
-
-      playerOneScore: state => state.localGame.playerOneScore,
-      playerTwoScore: state => state.localGame.playerTwoScore,
-      playerOne: state =>
-        state.localGame.instance.playerOne.cpu
-          ? `CPU#${state.localGame.instance.playerOne.difficulty}`
-          : "Player",
-
-      playerTwo: state =>
-        state.localGame.instance.playerTwo.cpu
-          ? `CPU#${state.localGame.instance.playerTwo.difficulty}`
-          : "Player"
-    })
+      history: state => state.history.instance,
+      result: state => state.history.result,
+      board: state => state.history.board
+    }),
+    activeStep: {
+      get() {
+        return this.$store.state.history.step;
+      },
+      set(value) {
+        this.$store.commit("CHANGE_STEP", value);
+        console.log("CHANGE_HISTORY_BOARD", value);
+        console.log("history value", this.history[value]);
+        this.$store.commit("CHANGE_HISTORY_BOARD", this.history[value]);
+      }
+    }
   },
-  data() {
-    return {
-      historyObj: {},
-      statusMessage: "Status message...",
-      processingInput: false
-    };
-  },
+
   methods: {
-    newGame() {
-      this.$store.commit("NEW_GAME");
-    },
     isHighlighted(id) {
-      return this.$store.state.localGame.instance.status.winCondition.includes(
-        id
-      );
+      return this.activeStep + 1 === this.history.length
+        ? this.result.winCondition.includes(id)
+        : false;
     },
-    viewHistory() {
-      console.log(this.historyObj);
-    },
-    showVuexHistory() {
-      console.log(this.history);
-    },
-    endRound() {
-      this.historyObj.history = this.history;
-      this.historyObj.outcome = this.game.status.draw
-        ? "draw"
-        : this.game.currentPlayer;
-      this.historyObj.winCondition = this.game.status.winCondition;
-      this.historyObj.board = this.game.board;
-      this.$store.commit("SAVE_HISTORY", this.historyObj);
-      this.$store.commit(
-        "END_ROUND",
-        this.game.status.draw ? "draw" : this.game.currentPlayer.mark
-      );
-    },
-    resetGame() {
-      this.$store.commit("RESET_GAME");
-      this.newGame();
-    },
+    changeStep() {},
     closeHistory() {
       this.$store.commit("CLOSE_HISTORY");
-    },
-    confirmInput(id) {
-      console.log(id);
-      if (this.processingInput === true) return;
-      else {
-        this.processingInput = true;
-        if (!this.isEnded) this.game.confirmInput(id);
-        this.processingInput = false;
-      }
-    },
-    handleClick() {
-      console.log("handleClick method");
-      if (this.isEnded) this.newGame();
     }
   }
 };
 </script>
+
 
 
 

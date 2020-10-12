@@ -110,6 +110,7 @@ export default {
     this.unwatchGameStatus = this.$watch("isEnded", newStatus => {
       console.log(`updating isEnded to ${newStatus}`);
       console.log(this.game.status);
+      console.log(this.game.history);
       if (newStatus) this.endRound();
     });
   },
@@ -143,7 +144,10 @@ export default {
         : this.game.currentPlayer;
       this.historyObj.winCondition = this.game.status.winCondition;
       this.historyObj.board = this.game.board;
-      this.$store.commit("SAVE_HISTORY", this.historyObj);
+      this.$store.commit("SAVE_RESULT", this.historyObj);
+      this.$store.commit("SAVE_HISTORY", this.game.history);
+      this.$store.commit("SAVE_BOARD", this.game.board);
+      this.$store.commit("CHANGE_STEP", this.game.status.turnCount - 1);
       this.$store.commit(
         "END_ROUND",
         this.game.status.draw ? "draw" : this.game.currentPlayer.mark

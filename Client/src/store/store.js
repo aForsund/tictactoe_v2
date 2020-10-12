@@ -32,12 +32,10 @@ export default new Vuex.Store({
 		},
 		history: {
 			isActive: false,
-			board: [
-				['', '', ''],
-				['', '', ''],
-				['', '', ''],
-			],
-			turnCount: 0,
+			instance: null,
+			result: null,
+			board: null,
+			step: 0,
 		},
 	},
 	mutations: {
@@ -65,8 +63,34 @@ export default new Vuex.Store({
 			state.localGame.instance = new Game(state.localGameOptions);
 		},
 		SAVE_HISTORY(state, history) {
-			state.history = history;
+			state.history.instance = history;
 		},
+		SAVE_RESULT(state, result) {
+			state.history.result = result;
+		},
+		SAVE_BOARD(state, board) {
+			state.history.board = board;
+		},
+		CHANGE_STEP(state, step) {
+			state.history.step = step;
+		},
+		CHANGE_HISTORY_BOARD(state, step) {
+			state.history.board = [
+				['', '', ''],
+				['', '', ''],
+				['', '', ''],
+			];
+			for (let i = 0; i < step.turn; i++) {
+				console.log('state move:');
+				console.log(state.history.instance[i].move);
+				console.log('state move: ');
+				console.log(state.history.instance[i].player.mark);
+				let [a, b] = state.history.instance[i].move;
+				console.log(a, b);
+				state.history.board[a][b] = state.history.instance[i].player.mark;
+			}
+		},
+
 		END_ROUND(state, result) {
 			state.localGameOptions.playerOne.turn = !state.localGameOptions.playerOne
 				.turn;
@@ -91,10 +115,6 @@ export default new Vuex.Store({
 		},
 		VIEW_HISTORY(state) {
 			state.history.isActive = true;
-			console.log('history: ', state.history.isActive);
-			console.log(state.history);
-			console.log(state);
-			console.log(state.localGame);
 		},
 		CLOSE_HISTORY(state) {
 			state.history.isActive = false;

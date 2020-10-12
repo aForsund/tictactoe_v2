@@ -5,9 +5,11 @@
         <Options />
         <Start />
       </div>
-      <div>
-        <History v-if="historyView" />
-        <TicTacToe v-if="localGame" />
+      <div v-else-if="historyView">
+        <History />
+      </div>
+      <div v-else>
+        <TicTacToe />
       </div>
     </div>
   </div>
