@@ -4,67 +4,71 @@
       <div class="columns is-mobile">
         <div class="column">
           <div>
-            <h1 class="subtitle">X: {{ playerOne }}</h1>
-            <h1 class="title">{{ playerOneScore }}</h1>
+            <h1 class="subtitle" key="playerOne">X: {{ playerOne }}</h1>
+
+            <h1 class="title" :key="playerOneScore">
+              {{ playerOneScore }}
+            </h1>
           </div>
         </div>
         <div class="column is-narrow">
           <div>
-            <h1 class="subtitle">Turn</h1>
-            <h1 class="title">{{ game.status.turnCount }}</h1>
+            <h1 class="subtitle" key="turn">Turn</h1>
+
+            <h1 class="title" :key="game.status.turnCount">
+              {{ game.status.turnCount }}
+            </h1>
           </div>
         </div>
         <div class="column">
           <div>
-            <h1 class="subtitle">O: {{ playerTwo }}</h1>
-            <h1 class="title">{{ playerTwoScore }}</h1>
+            <h1 class="subtitle" key="playerTwo">O: {{ playerTwo }}</h1>
+
+            <h1 class="title" :key="playerTwoScore">
+              {{ playerTwoScore }}
+            </h1>
           </div>
         </div>
       </div>
     </transition>
 
     <div class="board">
-      <div
-        v-for="(n, i) in game.board"
-        :key="i"
-        :id="`row${i + 1}`"
-        class="row"
-      >
+      <div v-for="(n, i) in game.board" :key="`row${i + 1}`" class="row">
         <div
           v-for="(n, j) in game.board[i]"
           class="cell"
+          :key="`row${i + 1}col${j + 1}`"
           v-bind:id="`row${i + 1}col${j + 1}`"
-          :key="game.gridReference[i][j]"
           v-bind:class="{
+            'has-text-primary has-text-weight-medium': isLastMove(
+              `row${i + 1}col${j + 1}`
+            ),
             'has-text-primary glowing': isHighlighted(`row${i + 1}col${j + 1}`)
           }"
           @click="confirmInput($event.target.id)"
         >
-          <transition name="fade"
-            ><span>{{ game.board[i][j] }}</span></transition
-          >
+          <transition-group name="fade">
+            <span :key="game.board[i][j]">{{ game.board[i][j] }}</span>
+          </transition-group>
         </div>
       </div>
     </div>
-
-    <div class="container has-text-centered mt-4 mb-2 status-message">
-      <transition name="fade">
+    <transition name="fade">
+      <div class="container has-text-centered mt-4 mb-2 status-message">
         <div>
           <div class="pt-1" v-on:click="handleClick">
-            <p class="title">
-              <span v-if="isEnded" class="has-text-primary">{{
-                statusMessage
-              }}</span>
-              <span v-if="!isEnded"
-                >It's {{ game.currentPlayer.mark }}'s turn</span
-              >
+            <p class="title" v-bind:class="{ 'has-text-primary': isEnded }">
+              <span v-if="isEnded">{{ result }}</span>
+              <span v-else>{{ game.currentPlayer.mark }}'s turn</span>
             </p>
-            <p class="subtitle">
-              <span v-if="isEnded" class="has-text-primary"
-                >Press here to play again</span
-              >
-              <span v-if="!isEnded">
-                <p class="mb-5"></p>
+            <p class="subtitle" v-bind:class="{ 'has-text-primary': isEnded }">
+              <span v-if="isEnded">Press here to play again</span>
+              <span v-else-if="game.history.length === 0">Let's go</span>
+              <span v-else
+                >Last move:
+                {{ game.history[game.history.length - 1].player.mark }} to [{{
+                  game.history[game.history.length - 1].move[0] + 1
+                }}, {{ game.history[game.history.length - 1].move[1] + 1 }}]
               </span>
             </p>
           </div>
@@ -72,14 +76,17 @@
             <button @click="viewHistory">View History</button>
           </div>
         </div>
-      </transition>
-    </div>
+      </div>
+    </transition>
+    <transition name="fade">
+      <div class="container has-text-centered">
+        <button class="button is-info opt" v-on:click="resetGame">Reset</button>
 
-    <div class="container has-text-centered">
-      <button class="button is-info opt" v-on:click="resetGame">Reset</button>
-
-      <button class="button is-danger opt" v-on:click="closeGame">Close</button>
-    </div>
+        <button class="button is-danger opt" v-on:click="closeGame">
+          Close
+        </button>
+      </div>
+    </transition>
   </div>
 </template>
 
@@ -90,7 +97,7 @@ export default {
   computed: {
     ...mapState({
       game: state => state.localGame.instance,
-
+      result: state => state.history.result,
       isEnded: state => state.localGame.instance.status.isEnded,
       playerOneScore: state => state.localGame.playerOneScore,
       playerTwoScore: state => state.localGame.playerTwoScore,
@@ -121,7 +128,6 @@ export default {
   data() {
     return {
       historyObj: {},
-      statusMessage: "Status message...",
       processingInput: false
     };
   },
@@ -133,6 +139,13 @@ export default {
       return this.$store.state.localGame.instance.status.winCondition.includes(
         id
       );
+    },
+    isLastMove(id) {
+      if (this.game.currentMove) {
+        let [i, j] = this.game.currentMove;
+
+        return this.game.gridReference[i][j] === id;
+      }
     },
     viewHistory() {
       this.$store.commit("VIEW_HISTORY");
@@ -204,32 +217,6 @@ export default {
   justify-content: center;
 }
 
-.fade-enter-active {
-  animation: fadeIn 0.5s;
-}
-
-.fade-leave-active {
-  animation: fadeOut 0.5s;
-}
-
-@keyframes fadeIn {
-  0% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 1;
-  }
-}
-
-@keyframes fadeOut {
-  0% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-  }
-}
-
 #row1col2,
 #row2col2,
 #row3col2 {
@@ -243,9 +230,33 @@ export default {
   border-top: 2px solid rgb(255, 255, 255, 0.3);
 }
 
+.fade-enter-active {
+  animation: fadeIn 0.5s;
+}
+.fade-leave-active {
+  animation: fadeOut 0.5s;
+}
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes fadeOut {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
 .glowing {
   text-shadow: 0px 0px 6px #8c67ef;
 }
+
 .status {
   background-color: hsl(171, 100%, 41%, 0.3);
   border-radius: 5px;
