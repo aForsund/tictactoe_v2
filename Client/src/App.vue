@@ -23,6 +23,9 @@
 
 <script>
 import NavBar from "@/components/NavBar.vue";
+//import Notification from "@/components/Notification.vue";
+//import LoginModal from "@/components/LoginModal.vue";
+
 export default {
   components: {
     NavBar

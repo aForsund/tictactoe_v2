@@ -1,9 +1,17 @@
 <template>
-  <nav class="navbar is-dark is-unselectable" role="navigation" aria-label="main navigation">
+  <nav
+    class="navbar is-dark is-unselectable"
+    role="navigation"
+    aria-label="main navigation"
+  >
     <div class="container">
       <div class="navbar-brand">
         <span class="navbar-item">
-          <p class="has-text-weight-bold is-size-4 has-text-primary is-absolute">Tic Tac Toe</p>
+          <p
+            class="has-text-weight-bold is-size-4 has-text-primary is-absolute"
+          >
+            Tic Tac Toe
+          </p>
         </span>
         <div
           class="navbar-burger"
@@ -18,18 +26,40 @@
           <span></span>
         </div>
       </div>
-      <div class="navbar-menu" id="navMenu" :class="{ 'is-active': getNavStatus }">
+      <div
+        class="navbar-menu"
+        id="navMenu"
+        :class="{ 'is-active': getNavStatus }"
+      >
         <div class="navbar-end" @click="disableNav">
-          <router-link class="navbar-item" :to="{ name: 'about' }" @click="disableNav">About</router-link>
+          <router-link
+            class="navbar-item"
+            :to="{ name: 'about' }"
+            @click="disableNav"
+            >About</router-link
+          >
 
-          <router-link class="navbar-item" :to="{ name: 'game' }" @click="disableNav">Local Game</router-link>
+          <router-link
+            class="navbar-item"
+            :to="{ name: 'game' }"
+            @click="disableNav"
+            >Local Game</router-link
+          >
 
-          <router-link class="navbar-item" :to="{ name: 'rankings' }" @click="disableNav">Rankings</router-link>
+          <router-link
+            class="navbar-item"
+            :to="{ name: 'rankings' }"
+            @click="disableNav"
+            >Rankings</router-link
+          >
 
           <span class="navbar-item">
-            <router-link class="button is-primary" :to="{ name: 'register' }" @click="disableNav">
-              <strong>Register</strong>
-            </router-link>
+            <div v-if="loggedIn" class="button is-primary" @click="logOut">
+              <strong>Log Out</strong>
+            </div>
+            <div v-else class="button is-primary" @click="openModal">
+              <strong>Log In</strong>
+            </div>
           </span>
         </div>
       </div>
@@ -38,8 +68,10 @@
 </template>
 
 <script>
+import { mapActions, mapGetters } from "vuex";
 export default {
   computed: {
+    ...mapGetters("user", ["loggedIn"]),
     getNavStatus() {
       return this.$store.state.showNav;
     }
@@ -53,11 +85,12 @@ export default {
     };
   },
   methods: {
+    ...mapActions("user", ["openModal", "logOut"]),
     clickBurger() {
-      this.$store.commit("clickNav");
+      this.$store.commit("CLICK_NAV");
     },
     disableNav() {
-      this.$store.commit("clickLink");
+      this.$store.commit("CLICK_LINK");
     }
   }
 };

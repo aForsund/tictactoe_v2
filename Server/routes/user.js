@@ -3,6 +3,9 @@ const router = express.Router();
 const User = require('../models/user');
 const passport = require('passport');
 const jwt = require('jsonwebtoken');
+const utils = require('../lib/utils');
+
+
 
 const getUser = async (req, res, next) => {
 	let user;
@@ -18,20 +21,7 @@ const getUser = async (req, res, next) => {
 	next();
 };
 
-//Get all users
-router.get('/', async (req, res) => {
-	try {
-		const users = await User.find();
-		res.json(users);
-	} catch (err) {
-		res.status(500).json({ message: err.message });
-	}
-});
 
-//Get one user
-router.get('/:id', getUser, (req, res) => {
-	res.json(res.user);
-});
 
 //Update user
 router.patch(
@@ -73,7 +63,7 @@ const authenticateToken = (req, res, next) => {
 };
 
 //Search users
-router.get('/search/:name', async function (req, res) {
+router.get('/search/:name', passport.authenticate('jwt', { session: false }), async function (req, res) {
 	try {
 		let search = await User.find({
 			username: { $regex: req.params.name, $options: 'i' },
@@ -84,21 +74,33 @@ router.get('/search/:name', async function (req, res) {
 	}
 });
 
-//Test JWT
 
-router.get(
-	'/protected',
-	passport.authenticate('jwt', { session: false }),
-	(req, res, next) => {
-		res.status(200).json({
-			success: true,
-			msg: 'You are successfully authenticated to this route!',
-		});
-	}
-);
 
-router.get('/posts', authenticateToken, (req, res) => {
+
+
+router.get('/posts', utils.isAuth(), (req, res) => {
 	res.json('Great success!');
 });
+
+
+
+
+
+//Get all users
+router.get('/', async (req, res) => {
+	try {
+		const users = await User.find();
+		res.json(users);
+	} catch (err) {
+		res.status(500).json({ message: err.message });
+	}
+});
+
+//Get one user
+router.get('/:id', getUser, (req, res) => {
+	res.json(res.user);
+});
+
+
 
 module.exports = router;

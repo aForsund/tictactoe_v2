@@ -2,10 +2,16 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
 import Game from '../tictactoe.js';
+import * as notification from '@/store/modules/notification.js';
+import * as user from '@/store/modules/user.js';
 
 Vue.use(Vuex);
 
 export default new Vuex.Store({
+	modules: {
+		user,
+		notification,
+	},
 	state: {
 		showNav: false,
 		searchArray: [],
@@ -126,6 +132,10 @@ export default new Vuex.Store({
 			return console.log('trying to submit: ', data, credentials);
 		},
 	},
-	modules: {},
-	getters: {},
+	
+	getters: {
+		loggedIn(state) {
+			return !!state.user;
+		}
+	},
 });

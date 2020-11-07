@@ -564,6 +564,7 @@ export default class Game {
 		
 		let field = this.getIndex(id);
 		
+
 		if (
 			this.validInput(this.board, field) &&
 			!this.currentPlayer.cpu &&
@@ -678,9 +679,11 @@ export default class Game {
 		this.minimaxStatus.minPlayer = minPlayer;
 	}
 
+	//Minimax starter function for higher difficulties
 	bestMove(mark, depth) {
 		
-		if (depth >= 100) {
+		//Pruning to save calculation time on 1st choice if highest difficulty
+		if (depth > 4) {
 			if (this.status.turnCount === 1) {
 				let options = [[0, 0], [0, 2], [2, 0], [2, 2]];
 				return options[Math.floor(Math.random()*3)];
@@ -689,10 +692,6 @@ export default class Game {
 		}
 
 		this.createMinimaxPlayers(mark, mark === 'X' ? 'O' : 'X');
-		
-		console.log('starting player: ', this.minimaxStatus.startingPlayer);
-		console.log('Maximizing player: ', this.minimaxStatus.maxPlayer);
-		console.log('Minimizing player: ', this.minimaxStatus.minPlayer);
 		
 		let maxEvaluation = Number.NEGATIVE_INFINITY;
 		
@@ -704,20 +703,20 @@ export default class Game {
 			let [a, b] = avaliableMoves[i];
 			let newBoard = this.cloneBoard(this.board);
 			newBoard[a][b] = this.minimaxStatus.maxPlayer;
-			let returnEvaluation = this._minimax(newBoard, depth, false, newTurnCount);
+			let returnEvaluation = this.minimax(newBoard, depth, false, newTurnCount, Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY);
 			
 			if(returnEvaluation > maxEvaluation) {
 				maxEvaluation = returnEvaluation;
 				move = [a, b];
 			}
-		//if ((board[1][1] === '') && (mark === this.startingPlayer)) return [1, 1];
 		}
 		return move;
 
 	}
 
-	
+	//Minimax helper function to score the board - smart draw estimation is not implemented
 	getScore(board, turnCount) {
+
 		console.log('getScore', board, turnCount);
 		let ended = false;
 		let score = 0;
@@ -738,8 +737,9 @@ export default class Game {
 		return { score, ended };
 	}
 	
-
-	_minimax(board, depth, maximizing, turnCount) {
+	//Minimax algorithm - use recursion to get the optimal computer choice
+	//AlphaBeta pruning implemented - will stop recursion if the current tree does not provide better options
+	minimax(board, depth, maximizing, turnCount, alpha, beta) {
 		console.log('minimax, ', board, depth, maximizing, turnCount);
 		let status = this.getScore(board, turnCount);
 		if (depth === 0 || status.ended) return status.score/turnCount;
@@ -754,12 +754,14 @@ export default class Game {
 				let [a, b] = avaliableSpaces[i];
 				let newBoard = this.cloneBoard(board);
 				newBoard[a][b] = this.minimaxStatus.maxPlayer;
-				let evaluation = this._minimax(newBoard, depth - 1, false, newTurnCount);
+				let evaluation = this.minimax(newBoard, depth - 1, false, newTurnCount, alpha, beta);
 				maxEvaluation = Math.max(maxEvaluation, evaluation);
-				
+				alpha = Math.max(alpha, evaluation);
+				if (beta <= alpha) break;
 			}
 			return maxEvaluation;
-		} else {
+		} 
+		else {
 			let minEvaluation = Number.POSITIVE_INFINITY;
 			let avaliableSpaces = this.getAvaliableMoves(board);
 			
@@ -768,150 +770,15 @@ export default class Game {
 				let [a, b] = avaliableSpaces[i];
 				let newBoard = this.cloneBoard(board);
 				newBoard[a][b] = this.minimaxStatus.minPlayer;
-				let evaluation = this._minimax(newBoard, depth - 1, true, newTurnCount);
+				let evaluation = this.minimax(newBoard, depth - 1, true, newTurnCount, alpha, beta);
 				minEvaluation = Math.min(minEvaluation, evaluation);
-				
+				beta = Math.min(beta, evaluation);
+				if (beta <= alpha) break;
 			}
 			return minEvaluation;
 		}
 	}
 
-
-
-	minimax(board, mark, isMaximizing, turnCount, maxDepth, depth) {
-		
-		console.log(`I am the ${isMaximizing ? 'maximizing' : 'minimizing'} player and my mark is ${mark}`);
-			/*
-			if (this.checkWinCondition(board, mark === 'X' ? 'O' : 'X')) return { score: -100 + depth, move: null };
-			if (this.checkWinCondition(board, mark))  return { score: 100 + depth, move: null };
-			
-			if (turnCount > 9) return { score: 0, move: null };
-			*/
-		let status = this.getScore(board, mark, mark === 'X' ? 'O' : 'X', isMaximizing);
-		if (status.end) return { score: status.score / depth, move: null } 
-		if (turnCount === 9) return { score: 0, move: null };
-		
-
-		let bestScore = isMaximizing ? -10000 : 10000;
-		let bestMove = null;
-		
-		
-			
-		
-		let avaliableSpaces = this.getAvaliableMoves(board);
-		let newBoard = this.cloneBoard(board);
-		for (let i = 0; i < avaliableSpaces.length; i++) {
-			
-			let [a, b] = avaliableSpaces[i];
-			
-			newBoard[a][b] = mark;
-			let score = this.minimax(newBoard, mark === 'X' ? 'O' : 'X', !isMaximizing, turnCount + 1, maxDepth, depth + 1).score;
-			
-
-			
-			if (((score > bestScore) && isMaximizing) || ((score < bestScore) && !isMaximizing)){
-				bestScore = score;
-				bestMove = [a, b];
-			}
-			
-				
-		}
-			
-			
-			
-		console.log('returning ', bestScore, bestMove, mark, isMaximizing);
-		return { score: bestScore, move: bestMove };
-		
-		
-	//Maximizer wants to maximize the score - opponent wants to minimize the score
-	}
-
-		
-		
-	
-
-		
-		
-
-		
-
-		
-		
-	
-		
-		
-
-/*
-	minimax2(board, maximizer, mark, turnCount, maxDepth, depth = 0, ) {
-		//let evaluation = this.evaluateBoard(board, mark, maximizer, turnCount).evaluation;
-		
-		//if (evaluation) return { evaluation: evaluation, move: null }
-		if (this.checkWinCondition(board, mark)) return maximizer ? { evaluation: +1000 } : { evaluation: -1000 };
-		if (this.checkWinCondition(board, mark === 'X' ? 'O' : 'X')) return maximizer ? { evaluation: -1000 } : { evaluation: +1000 };
-		if (turnCount > 8) return { evaluation: 0 };
-
-		let returnScore = null;
-		let returnMove = null;
-		if (maximizer) {
-			let {evaluation, move} = this.maximize(board, mark, turnCount, maxDepth, depth);
-			returnScore = evaluation;
-			returnMove = move;
-		}
-		else {
-			let {evaluation, move} = this.minimize(board, mark, turnCount, maxDepth, depth);
-			returnScore = evaluation;
-			returnMove = move;
-		}
-		
-		return { evaluation: returnScore, move: returnMove };
-	}
-
-	maximize(board, mark, turnCount, maxDepth, depth = 0) {
-		let score = -100000;
-		let move = null;
-
-		let avaliableSpaces = this.getAvaliableMoves(board);
-
-		let newBoard = this.cloneBoard(board);
-		for (let i = 0; i < avaliableSpaces.length; i++) {
-			let [a, b] = avaliableSpaces[i];
-			
-			
-			newBoard[a][b] = mark;
-			let evaluation = this.minimax2(newBoard, false, mark === 'X' ? 'O' : 'X', turnCount+1, maxDepth, depth+1).evaluation;
-
-			if (evaluation > score) {
-				move = [a, b];
-				score = evaluation;
-			}
-		}
-		return { evaluation: score, move: move }
-	}
-
-	minimize(board, mark, turnCount, maxDepth, depth = 0) {
-		let score = 100000;
-		let move = null;
-
-		let avaliableSpaces = this.getAvaliableMoves(board);
-
-		let newBoard = this.cloneBoard(board);
-
-		for (let i = 0; i < avaliableSpaces.length; i++) {
-			let [a, b] = avaliableSpaces[i];
-			
-			
-			newBoard[a][b] = mark;
-			let evaluation = this.minimax2(newBoard, true, mark === 'X' ? 'O' : 'X', turnCount+1, maxDepth, depth+1).evaluation;
-
-			if (evaluation < score) {
-				move = [a, b];
-				score = evaluation;
-			}
-		}
-		return { evaluation: score, move: move }
-	}
-	
-*/
 	computerChoice() {
 		console.log(
 			"computerChoice function - I'm making a choice based on my difficulty setting, which is ",

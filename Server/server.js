@@ -1,11 +1,17 @@
 const express = require('express');
+const http = require('http');
 //const path = require('path');
 const passport = require('passport');
+const socketio = require('socket.io');
+
+//Remove cors for production!
+const cors = require('cors');
 
 require('dotenv').config();
 
 //Create Express application
 const app = express();
+
 
 //Configure the DB and open a global connection
 require('./config/database');
@@ -19,6 +25,9 @@ require('./config/passport')(passport);
 
 //Initialize passport object on every request
 app.use(passport.initialize());
+
+//Remove cors for production!!
+app.use(cors());
 
 //Body parser middleware
 app.use(express.json());
@@ -44,6 +53,26 @@ app.use(express.static(__dirname + '/public/'));
 
 app.get('*', (req, res) => res.sendFile(__dirname + '/public/index.html'));
 
-let port = process.env.PORT || 3000;
 
-app.listen(port, () => console.log(`Server started on port ${port}`));
+const server = http.createServer(app);
+const io = socketio(server);
+
+io.on('connection', socket => {
+  socket.emit('hello', 'hello from socket.io');
+  console.log('new WS connection...');
+});
+
+let port = 3000 || process.env.PORT;
+
+
+
+server.listen(port, () => console.log(`Server started on port ${port}`));
+
+
+//
+// io.sockets.on('connection', (socket) => {
+//   console.log('user connected');
+//   socket.on('disconnect', () => {
+//     console.log('user disconnected');
+//   });
+// });

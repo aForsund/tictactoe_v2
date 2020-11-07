@@ -1,7 +1,5 @@
-const path = require('path');
-
 module.exports = {
-	outputDir: path.resolve(__dirname, '../Server/public'),
+	outputDir: ('../Server/public'),
 	devServer: {
 		proxy: {
 			'': {

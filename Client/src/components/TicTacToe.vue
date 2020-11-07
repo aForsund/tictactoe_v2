@@ -45,10 +45,10 @@
             ),
             'has-text-primary glowing': isHighlighted(`row${i + 1}col${j + 1}`)
           }"
-          @click="confirmInput($event.target.id)"
+          @click="confirmInput(`row${i + 1}col${j + 1}`)"
         >
           <transition-group name="fade">
-            <span :key="game.board[i][j]">{{ game.board[i][j] }}</span>
+            <span :key="`row${i + 1}col${j + 1}`">{{ game.board[i][j] }}</span>
           </transition-group>
         </div>
       </div>

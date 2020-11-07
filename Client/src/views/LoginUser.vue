@@ -1,16 +1,12 @@
 <template>
   <div class="hero-body">
     <div class="container">
-      <h1 class="title">Register User</h1>
-      <h2 class="subtitle">Authorization is not yet implemented</h2>
+      <h1 class="title">Login User</h1>
+
       <div class="columns is-mobile">
         <div
           class="column is-three-quarters-mobile is-half-tablet is-one-third-widescreen"
         >
-          <p class="subtitle">
-            You can add users to the database and search for them in the
-            rankings section
-          </p>
           <div class="field">
             <p class="control has-icons-left has-icons-right">
               <input
@@ -46,7 +42,13 @@
           <div class="field">
             <p class="control">
               <button class="button is-success" @click="verifyRequest">
-                Register
+                Login
+              </button>
+              <button class="button is-danger" @click="logIn(data)">
+                Commit login
+              </button>
+              <button class="button is-danger" @click="logOut">
+                Commit logout
               </button>
             </p>
           </div>
@@ -57,7 +59,8 @@
 </template>
 
 <script>
-import API_interface from "@/services/API-interface.js";
+//import API_interface from "@/services/API-interface.js";
+import { mapActions } from "vuex";
 
 export default {
   data() {
@@ -68,13 +71,15 @@ export default {
         password: "",
         connection: null
       },
-      name: "",
-      password: "",
-      email: ""
+      jwt: ""
     };
   },
   created: {},
+  computed: {},
+
   methods: {
+    ...mapActions("user", ["logIn", "logOut"]),
+
     verifyRequest() {
       if (this.name === "" && this.password === "") {
         this.alertUsername();
@@ -89,7 +94,8 @@ export default {
       } else {
         this.data.name = this.name;
         this.data.password = this.password;
-        this.register(this.data);
+        console.log("data added");
+        this.logIn(this.data);
       }
     },
     clearData() {
@@ -106,14 +112,6 @@ export default {
     },
     alertPassword() {
       console.log("alert password");
-    },
-    register() {
-      API_interface.registerUser(this.data)
-        .then(response => {
-          console.log(response);
-          this.clearData();
-        })
-        .catch(err => console.log(err));
     }
   }
 };
