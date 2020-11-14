@@ -9,8 +9,9 @@ export const state = {
   modal: {
     show: false,
     resolve: null,
-   
-  }
+  },
+  online: false,
+  messages: null
 }
 
 
@@ -42,7 +43,14 @@ export const mutations = {
       
       console.log('hiding modal...');
       state.modal.instance.close();
+    },
+    ENABLE_ONLINE(state) {
+      state.online = true;
+    },
+    DISABLE_ONLINE(state) {
+      state.online = false;
     }
+
   }
 export const actions = {
     logIn({ commit }, data) {
@@ -63,26 +71,20 @@ export const actions = {
     showModal({ commit }) {
       commit('SHOW_MODAL');
     },
+
     hideModal({ commit }) {
       commit('HIDE_MODAL');
     },
+    //remove this or showModal()
     openModal({ commit }) {
-      
       commit('SHOW_MODAL');
-      // Modal.open({
-      //   parent: this.parent,
-      //   component: LoginModal,
-      //   hasModalCard: true,
-      //   customClass: "custom-class custom-class-2",
-      //   trapFocus: true,
-      //   events: {
-      //     logIn: packet => {
-      //       console.log(packet);
-      //       this.dispatch('user/logIn', packet);
-      //     }
-      //   } 
-      // });
     },
+    enableOnline({ commit }) {
+      commit('ENABLE_ONLINE');
+    },
+    disableOnline({ commit }) {
+      commit('DISABLE_ONLINE');
+    }
     
  }
 
@@ -92,6 +94,12 @@ export const getters = {
     },
     modalActive(state) {
       return state.modal.show;
+    },
+    online(state) {
+      return state.online;
+    },
+    messages(state) {
+      return state.messages;
     }
   }
 

@@ -13,6 +13,7 @@
             Tic Tac Toe
           </p>
         </span>
+        
         <div
           class="navbar-burger"
           data-target="navMenu"
@@ -52,6 +53,14 @@
             @click="disableNav"
             >Rankings</router-link
           >
+          <span v-if="loggedIn" class="navbar-item">
+            
+          <b-switch :left-label="true" :outlined=true>{{ online ? 'Online' : 'Offline'}}</b-switch>
+          
+        </span>
+        <span class="navbar-item">
+          <b-icon pack="fas" icon="envelope" type="is-primary" size="is-small"></b-icon>
+        </span>
 
           <span class="navbar-item">
             <div v-if="loggedIn" class="button is-primary" @click="logOut">
@@ -71,7 +80,7 @@
 import { mapActions, mapGetters } from "vuex";
 export default {
   computed: {
-    ...mapGetters("user", ["loggedIn"]),
+    ...mapGetters("user", ["loggedIn", "online", "messages"]),
     getNavStatus() {
       return this.$store.state.showNav;
     }
@@ -107,5 +116,9 @@ export default {
 }
 .button {
   transition: all 0.4s;
+}
+
+.flexcontainer {
+  display: flex;
 }
 </style>
