@@ -66,11 +66,11 @@ io.on('connection', socket => {
 });
 
 
-let port = 3001 || process.env.PORT;
+let port = 3000;
 
 
 
 
-server.listen(port, () => console.log(`Server started on port ${port}`));
+server.listen(process.env.PORT || port, () => console.log(`Server started on port ${port}`));
 
 
