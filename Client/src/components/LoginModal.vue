@@ -8,31 +8,28 @@
     </header>
     <section class="modal-card-body">
       <b-field label="Username">
-        <b-input :value="name" placeholder="Your username" required> </b-input>
+        <b-input v-model="name" placeholder="Your username" required>
+        </b-input> 
       </b-field>
       <b-field label="Password">
         <b-input
           type="password"
-          :value="password"
+          v-model="password"
           password-reveal
           placeholder="Your password"
           required
         >
-          <span class="icon is-small is-left">
-            <i class="fas fa-lock"></i>
-          </span>
-          <span v-if="password !== ''" class="icon is-small is-right">
-            <i class="fas fa-check"></i>
-          </span>
         </b-input>
       </b-field>
-      <b-checkbox>Remember me/Accept cookie policy</b-checkbox>
+      <b-checkbox>Accept policy*</b-checkbox>
+        <p>* this project saves user data to local storage</p>
+      
     </section>
     <footer class="modal-card-foot">
       <button class="button" type="button" @click="$emit('close')">
         Close
       </button>
-      <button class="button is-primary" type="button" @click="test">
+      <button class="button is-primary" type="button" @click="verifyRequest">
         {{ login ? "Login" : "Register" }}
       </button>
       <button class="button is-primary" type="button" @click="login = !login">
@@ -56,13 +53,13 @@ export default {
       name: "",
       password: "",
       data: {
-        name: "h",
-        password: "h"
+        name: "",
+        password: ""
       }
     };
   },
   computed: {
-    ...mapGetters("user", ["modalActive"])
+    ...mapGetters("user", ["modalActive", "loggedIn"])
   },
   methods: {
     //...mapActions("user", ["logIn"]),
@@ -77,13 +74,17 @@ export default {
         this.data.name = this.name;
         this.data.password = this.password;
         console.log("data added");
-        this.logIn(this.data);
-        this.$emit("close");
+        this.login ? this.emitLogin(this.data) : this.emitRegister(this.data);
+  
       }
     },
-    test() {
+    emitLogin() {
       this.$emit("logIn", this.data);
+    },
+    emitRegister() {
+      this.$emit('register', this.data);
     }
-  }
+  },
+  
 };
 </script>

@@ -53,21 +53,22 @@
             @click="disableNav"
             >Rankings</router-link
           >
-          <span v-if="loggedIn" class="navbar-item">
-            
-          <b-switch :left-label="true" :outlined=true>{{ online ? 'Online' : 'Offline'}}</b-switch>
-          
-        </span>
-        <span class="navbar-item">
-          <b-icon pack="fas" icon="envelope" type="is-primary" size="is-small"></b-icon>
-        </span>
+
+          <router-link
+            v-if="loggedIn"
+            class="navbar-item"
+            :to="{ name: 'dashboard' }"
+            @click="disableNav"
+            >Dashboard</router-link>
+         
+       
 
           <span class="navbar-item">
-            <div v-if="loggedIn" class="button is-primary" @click="logOut">
-              <strong>Log Out</strong>
+            <div v-if="loggedIn" class="button is-primary has-text-weight-semibold" @click="logOut">
+              Log Out
             </div>
-            <div v-else class="button is-primary" @click="openModal">
-              <strong>Log In</strong>
+            <div v-else class="button is-primary has-text-weight-semibold" @click="openModal">
+              Log In
             </div>
           </span>
         </div>

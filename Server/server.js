@@ -59,16 +59,15 @@ app.get('*', (req, res) => res.sendFile(__dirname + '/public/index.html'));
 const server = require('http').createServer(app);
 
 
+const rootSocket = require('./config/websocket');
 
 const io = socketio(server);
 
 io.on('connection', socket => {
-  socket.emit('hello', 'hello from socket.io');
-  console.log('new WS connection...');
-  socket.on('disconnect', () => {
-    console.log('user disconnected');
-  });
-});
+  require('./config/websocket')(socket, io);
+
+})
+
 
 let port = 3000 || process.env.PORT;
 

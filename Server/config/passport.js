@@ -14,6 +14,17 @@ const options = {
 };
 
 const strategy = new JwtStrategy(options, (payload, done) => {
+    
+    //Check if token is expired 
+    let now = Date.now();
+    if (now > payload.exp) {
+        console.log('token not valid');
+        console.log(payload);
+        console.log('now: ', now);
+        return done(null, false);
+    }
+
+    //Check if user exists in DB
     User.findOne({ _id: payload.sub })
         .then((user) => {
             if (user) {

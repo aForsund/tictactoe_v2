@@ -79,7 +79,10 @@ router.get('/search/:name', passport.authenticate('jwt', { session: false }), as
 
 
 router.get('/posts', utils.isAuth(), (req, res) => {
-	res.json('Great success!');
+	console.log('hello from /posts')
+	const decodedToken = utils.getUserFromHeader(req);
+	console.log(decodedToken);
+	res.json('Great Success');
 });
 
 

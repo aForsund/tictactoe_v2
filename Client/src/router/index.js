@@ -3,11 +3,9 @@ import VueRouter from 'vue-router';
 
 import About from '../views/About.vue';
 import Game from '../views/Game.vue';
-import Multiplayer from '../views/Multiplayer.vue'
 import Rankings from '../views/Rankings.vue';
 import Dashboard from '../views/Dashboard.vue';
-import RegisterUser from '../views/RegisterUser.vue';
-import LoginUser from '../views/LoginUser.vue';
+
 
 Vue.use(VueRouter);
 
@@ -27,11 +25,6 @@ const routes = [
 		component: Game,
 	},
 	{
-		path: '/multiplayer',
-		name: 'multiplayer',
-		component: Multiplayer
-	},
-	{
 		path: '/rankings',
 		name: 'rankings',
 		component: Rankings,
@@ -42,16 +35,6 @@ const routes = [
 		name: 'dashboard',
 		component: Dashboard,
 		meta: { requiresAuth: true }
-	},
-	{
-		path: '/register',
-		name: 'register',
-		component: RegisterUser,
-	},
-	{
-		path: '/login',
-		name: 'login',
-		component: LoginUser
 	},
 	{
 		path: '*',

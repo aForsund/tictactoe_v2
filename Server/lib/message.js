@@ -1,10 +1,11 @@
 const formatMessage = (username, text) => {
+    let date = new Date();
     return {
         username,
         text,
-        day: Date.getDay(),
-        hour: Date.getHours(),
-        minute: Date.getMinute(),
+        day: date.getDay(),
+        hour: date.getHours(),
+        minute: date.getMinutes(),
     };
 }
 

@@ -1,6 +1,11 @@
 import axios from 'axios';
+//import { store } from '../store/store'
 
 const BASE_URL = 'http://localhost:3000';
+
+axios.interceptors.response.use(response => response, error => {if (error.response.status === 401) console.log('logout....')
+return Promise.reject(error)}
+);
 
 const apiClient = axios.create({
 	baseURL: BASE_URL,
@@ -10,6 +15,10 @@ const apiClient = axios.create({
 		'Content-Type': 'application/json',
 	},
 });
+
+
+
+
 
 export default {
 	getUsers() {
@@ -27,7 +36,7 @@ export default {
 	},
 	loginUser(data) {
 		console.log('loginUser - API-interface');
-		return apiClient.post('/api/auth/login', {
+		return axios.post('/api/auth/login', {
 			username: data.name,
 			password: data.password,
 		});
@@ -47,5 +56,10 @@ export default {
 			}
 		});
 		return authorizedRequest.get('/api/user/posts');
+	},
+	testJWT2(jwt) {
+		apiClient.defaults.headers.common['Authorization'] = jwt;
+		
+		return apiClient.get('/api/user/posts');
 	}
 };

@@ -22,17 +22,66 @@
 </template>
 
 <script>
+import { mapActions } from 'vuex';
+import axios from 'axios';
+
 import NavBar from "@/components/NavBar.vue";
+
 //import Notification from "@/components/Notification.vue";
 
-
 export default {
+  data() {
+    return {
+      userString: null,
+
+    }
+  },
   components: {
     NavBar
-  }
+  },
+  methods: {
+		...mapActions('user', ['setUser', 'logOut', 'testJWT'])
+	},
+	created() {
+    axios.interceptors.response.use(
+      response => response,
+      error => {
+        if (error.response.status === 401) {
+          this.logOut();
+        }
+        return Promise.reject(error)
+      }
+    );
+    this.userString = localStorage.getItem('user');
+		if (this.userString) {
+			console.log('userString', this.userString);
+			
+      this.setUser(JSON.parse(this.userString));
+      this.testJWT();
+    }
+    
+  },
+	
+	
 };
+
 </script>
 
 <style lang="scss">
 @import "~bulma/css/bulma.css";
+body::-webkit-scrollbar {
+  width: 12px;               /* width of the entire scrollbar */
+}
+body::-webkit-scrollbar-track {
+  background: hsl(0, 0%, 21%);        /* color of the tracking area */
+}
+body::-webkit-scrollbar-thumb {
+  background-color: #8c67ef;    /* color of the scroll thumb */
+  border-radius: 20px;       /* roundness of the scroll thumb */
+  border: 3px solid hsl(0, 0%, 21%);  /* creates padding around scroll thumb */
+}
+
+
+  
+
 </style>
