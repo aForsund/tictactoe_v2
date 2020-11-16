@@ -1,7 +1,7 @@
 import io from 'socket.io-client';
 
 //Change url for production
-const SERVER_URL = 'http://localhost:3000'
+const SERVER_URL = '';
 
 export default class MySocket {
     constructor(user) {

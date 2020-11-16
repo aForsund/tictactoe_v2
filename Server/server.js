@@ -1,10 +1,9 @@
 const express = require('express');
-const http = require('http');
 const passport = require('passport');
 const socketio = require('socket.io');
 
 //Remove cors for production!  <----------
-const cors = require('cors');
+//const cors = require('cors');
 
 
 require('dotenv').config();
@@ -28,7 +27,7 @@ require('./config/passport')(passport);
 app.use(passport.initialize());
 
 //Remove cors for production!!    <---------
-app.use(cors());
+//app.use(cors());
 
 //Body parser middleware
 app.use(express.json());
@@ -59,14 +58,12 @@ app.get('*', (req, res) => res.sendFile(__dirname + '/public/index.html'));
 const server = require('http').createServer(app);
 
 
-const rootSocket = require('./config/websocket');
-
 const io = socketio(server);
 
 io.on('connection', socket => {
   require('./config/websocket')(socket, io);
 
-})
+});
 
 
 let port = 3000 || process.env.PORT;
@@ -77,10 +74,3 @@ let port = 3000 || process.env.PORT;
 server.listen(port, () => console.log(`Server started on port ${port}`));
 
 
-//
-// io.sockets.on('connection', (socket) => {
-//   console.log('user connected');
-//   socket.on('disconnect', () => {
-//     console.log('user disconnected');
-//   });
-// });
