@@ -3,10 +3,9 @@ Server/.env
 Server/*.pem
 Client/node_modules
 Server/node_modules
-Server/public
+
 
 
 Client/src/components/Board.vue
 Client/src/components/MultiplayerModal.vue
-Client/src/components/NotificationContainer
 Client/src/components/NotificationContainer.vue
