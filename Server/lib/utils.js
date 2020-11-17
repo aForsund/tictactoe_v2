@@ -27,7 +27,7 @@ const genPassword = (password) => {
 
 const issueJWT = (user) => {
 	const _id = user._id;
-	const expiresIn = '1d';
+	const expiresIn = '86400000';
 
 	const payload = {
 		sub: _id,
