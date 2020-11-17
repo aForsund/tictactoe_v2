@@ -58,7 +58,7 @@
         <div>
           <div class="pt-1" v-on:click="handleClick">
             <p class="title" v-bind:class="{ 'has-text-primary': isEnded }">
-              <span v-if="isEnded">{{ result }}</span>
+              <span v-if="isEnded">{{ result.outcome === 'draw' ? 'It\'s a draw' : `${result.outcome.mark} has won` }}</span>
               <span v-else>{{ game.currentPlayer.mark }}'s turn</span>
             </p>
             <p class="subtitle" v-bind:class="{ 'has-text-primary': isEnded }">
@@ -72,9 +72,7 @@
               </span>
             </p>
           </div>
-          <div class="pt-1" v-if="isEnded">
-            <button @click="viewHistory">View History</button>
-          </div>
+          
         </div>
       </div>
     </transition>
@@ -85,6 +83,10 @@
         <button class="button is-danger opt" v-on:click="closeGame">
           Close
         </button>
+        
+        <button v-if="isEnded" class="button is-primary" @click="viewHistory">View History</button>
+        
+        
       </div>
     </transition>
   </div>
