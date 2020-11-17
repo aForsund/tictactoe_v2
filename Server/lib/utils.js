@@ -27,7 +27,7 @@ const genPassword = (password) => {
 
 const issueJWT = (user) => {
 	const _id = user._id;
-	const expiresIn = '100';
+	const expiresIn = '1d';
 
 	const payload = {
 		sub: _id,
@@ -43,7 +43,7 @@ const issueJWT = (user) => {
 	console.log('signed token: ', signedToken);
 	return {
 		token: 'Bearer ' + signedToken,
-		expires: expiresIn,
+		//expires: expiresIn,
 	};
 };
 
