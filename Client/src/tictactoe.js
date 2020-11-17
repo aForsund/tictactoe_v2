@@ -703,7 +703,7 @@ export default class Game {
 			let [a, b] = avaliableMoves[i];
 			let newBoard = this.cloneBoard(this.board);
 			newBoard[a][b] = this.minimaxStatus.maxPlayer;
-			let returnEvaluation = this.minimax(newBoard, depth, false, newTurnCount, Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY);
+			let returnEvaluation = this.minimax(newBoard, depth, false, newTurnCount);
 			
 			if(returnEvaluation > maxEvaluation) {
 				maxEvaluation = returnEvaluation;
@@ -738,8 +738,8 @@ export default class Game {
 	}
 	
 	//Minimax algorithm - use recursion to get the optimal computer choice
-	//AlphaBeta pruning implemented - will stop recursion if the current tree does not provide better options
-	minimax(board, depth, maximizing, turnCount, alpha, beta) {
+	
+	minimax(board, depth, maximizing, turnCount) {
 		console.log('minimax, ', board, depth, maximizing, turnCount);
 		let status = this.getScore(board, turnCount);
 		if (depth === 0 || status.ended) return status.score/turnCount;
@@ -754,10 +754,10 @@ export default class Game {
 				let [a, b] = avaliableSpaces[i];
 				let newBoard = this.cloneBoard(board);
 				newBoard[a][b] = this.minimaxStatus.maxPlayer;
-				let evaluation = this.minimax(newBoard, depth - 1, false, newTurnCount, alpha, beta);
+				let evaluation = this.minimax(newBoard, depth - 1, false, newTurnCount);
 				maxEvaluation = Math.max(maxEvaluation, evaluation);
-				alpha = Math.max(alpha, evaluation);
-				if (beta <= alpha) break;
+				//alpha = Math.max(alpha, evaluation);
+				//if (beta <= alpha) break;
 			}
 			return maxEvaluation;
 		} 
@@ -770,10 +770,10 @@ export default class Game {
 				let [a, b] = avaliableSpaces[i];
 				let newBoard = this.cloneBoard(board);
 				newBoard[a][b] = this.minimaxStatus.minPlayer;
-				let evaluation = this.minimax(newBoard, depth - 1, true, newTurnCount, alpha, beta);
+				let evaluation = this.minimax(newBoard, depth - 1, true, newTurnCount);
 				minEvaluation = Math.min(minEvaluation, evaluation);
-				beta = Math.min(beta, evaluation);
-				if (beta <= alpha) break;
+				//beta = Math.min(beta, evaluation);
+				//if (beta <= alpha) break;
 			}
 			return minEvaluation;
 		}

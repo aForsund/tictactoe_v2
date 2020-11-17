@@ -21,17 +21,15 @@
         >
         </b-input>
       </b-field>
-      <b-checkbox>Accept policy*</b-checkbox>
-        <p>* this project saves user data to local storage</p>
+      <b-checkbox v-if="!login" v-model="terms">By registering you accept that this app saves data to localstorage</b-checkbox>
+        
       
     </section>
     <footer class="modal-card-foot">
-      <button class="button" type="button" @click="$emit('close')">
-        Close
-      </button>
       <button class="button is-primary" type="button" @click="verifyRequest">
         {{ login ? "Login" : "Register" }}
       </button>
+      
       <button class="button is-primary" type="button" @click="login = !login">
         {{
           login
@@ -52,6 +50,7 @@ export default {
       login: true,
       name: "",
       password: "",
+      terms: false,
       data: {
         name: "",
         password: ""
@@ -64,6 +63,10 @@ export default {
   methods: {
     //...mapActions("user", ["logIn"]),
     verifyRequest() {
+      if (!this.login && !this.terms) {
+        console.log('Please accept terms to register an account');
+        return;
+      }
       if (this.name === "" && this.password === "") {
         return;
       } else if (this.name === "" && this.password !== "") {

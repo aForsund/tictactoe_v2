@@ -1,18 +1,19 @@
 <template>
 <div>
-        <p class="title">
-            Chat
-            <span>
-                <b-switch @input="changeStatus" :value="activeChat" size="is-medium" :disabled="online ? false : true"> {{ activeChat ? 'Disable Chat' : 'Enable Chat'}}</b-switch></span></p>
+        <p class="title">Chat</p>
+            
+                
       <div v-if="activeChat">
          
           <div class="chat notification has-background-grey-dark">
-      <p v-for="(message, index) in socket.chat" :key="index">
-        <span class="tag has-background-primary has-text-white is-medium mb-2">
-        <span class="has-text-weight-semibold">{{ 10 > message.hour ? `0${message.hour}` : message.hour }}:{{ 10 > message.minute ? `0${message.minute}` : message.minute }} {{ message.username}}:</span>  
-        <span class="pl-2"> {{ message.text}} </span>
-        </span>
-      </p>
+      <div class="block" v-for="(message, index) in socket.chat" :key="index">
+        <div class="has-background-primary has-text-white is-medium m-2">
+        <span class="has-text-weight-semibold">{{ 10 > message.hour ? `0${message.hour}` : message.hour }}:{{ 10 > message.minute ? `0${message.minute}` : message.minute }} {{ message.username}}: {{" "}}</span>  
+        <span> {{ message.text}} </span>
+        <span /><span />
+        
+        </div>
+      </div>
       
       </div>
       
@@ -22,9 +23,11 @@
           </div>
       </div>
       
+
+      
     
         
-        
+         
     </div>
     
 </template>
@@ -57,9 +60,11 @@ export default {
 
 .chat {
   height: 370px;
+  
   overflow-y: auto;
   
 }
+
 .chat::-webkit-scrollbar {
   width: 12px;               /* width of the entire scrollbar */
 }
@@ -71,4 +76,5 @@ export default {
   border-radius: 20px;       /* roundness of the scroll thumb */
   border: 3px solid hsl(0, 0%, 21%);  /* creates padding around scroll thumb */
 }
+
 </style>

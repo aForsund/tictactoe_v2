@@ -3,15 +3,13 @@ const express = require('express');
 const router = express.Router();
 const User = mongoose.model('User');
 const utils = require('../lib/utils');
-const passport = require('passport');
-//const jwt = require('jsonwebtoken');
 
 //Register new user
 router.post('/register', async (req, res, next) => {
 	console.log('register user...');
 	User.findOne({ username: req.body.username })
 		.then((user) => {
-			if (user) return res.status(403).json({ success: false, msg: 'user already exists..' });
+			if (user) return res.status(403).json({ success: false, message: 'Username already exists' });
 			else {
 				const saltHash = utils.genPassword(req.body.password);
 
@@ -70,33 +68,31 @@ router.post('/login', (req, res, next) => {
 					
 					
 				} else {
-					res.status(401).json({ success: false, message: 'wrong password' });
+					res.status(401).json({ success: false, message: 'You entered the wrong password' });
 				}	
 			} else {
-				res.status(404).json({ success: false, message: "could not find user.." });
+				res.status(404).json({ success: false, message: "Username does not exist" });
 			}
-			
-			
-
-	
-
-
-
-			
 		})
 		.catch((err) => next(err));
 });
 
-router.get('/testjwt', utils.isAuth , async (req, res, next) => {
-	try {
-	res.status(200).json({
-		success: true,
-		msg: 'You are successfully authenticated to this route!',
-	});
-} catch (err) {
-	console.log(err);
-}
-}
-);
+router.get('/refresh', (req, res) => {
+	console.log('hello from /api/auth/refresh')
+	const decodedToken = utils.getUserFromHeader(req);
+	console.log('Decoded token: ');
+	console.log(decodedToken);
+	
+	res.json('Great Success');
+});
+
+router.get('/confirm', (req, res) => {
+	console.log('hello from /api/auth/refresh')
+	const confirmation = utils.confirmToken(req);
+	
+	
+	
+	res.json(confirmation);
+});
 
 module.exports = router;

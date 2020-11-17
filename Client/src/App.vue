@@ -23,8 +23,6 @@
 
 <script>
 import { mapActions } from 'vuex';
-import axios from 'axios';
-
 import NavBar from "@/components/NavBar.vue";
 
 //import Notification from "@/components/Notification.vue";
@@ -43,15 +41,7 @@ export default {
 		...mapActions('user', ['setUser', 'logOut', 'testJWT'])
 	},
 	created() {
-    axios.interceptors.response.use(
-      response => response,
-      error => {
-        if (error.response.status === 401) {
-          this.logOut();
-        }
-        return Promise.reject(error)
-      }
-    );
+    
     this.userString = localStorage.getItem('user');
 		if (this.userString) {
 			console.log('userString', this.userString);

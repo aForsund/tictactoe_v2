@@ -48,6 +48,7 @@
           >
 
           <router-link
+            v-if="loggedIn"
             class="navbar-item"
             :to="{ name: 'rankings' }"
             @click="disableNav"

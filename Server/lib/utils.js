@@ -27,7 +27,7 @@ const genPassword = (password) => {
 
 const issueJWT = (user) => {
 	const _id = user._id;
-	const expiresIn = '86400000';
+	const expiresIn = '100';
 
 	const payload = {
 		sub: _id,
@@ -57,13 +57,35 @@ const getUserFromHeader = (req) => {
 	const authHeader = req.headers.authorization;
 	const token = authHeader.split(' ');
 	console.log(token);
-	return jwt.verify(token[1], PUB_KEY);
+	let decodedToken = null;
+	try{
+		decodedToken = jwt.verify(token[1], PUB_KEY);
+		return decodedToken;
+	}
+	catch(error) {
+		console.log(error);
+	}
 	
-	
+}
+
+const confirmToken = (req) => {
+	console.log('confirmToken with jwt..');
+	const authHeader = req.headers.authorization;
+	const token = authHeader.split(' ');
+	console.log(token);
+	let validToken = null;
+	try {
+		validToken = jwt.verify(token[1], PUB_KEY);
+		return validToken;
+	}
+	catch(error) {
+		return error;
+	}
 }
 
 module.exports.isAuth = isAuth;
 module.exports.getUserFromHeader = getUserFromHeader;
+module.exports.confirmToken = confirmToken;
 module.exports.issueJWT = issueJWT;
 module.exports.genPassword = genPassword;
 module.exports.validPassword = validPassword;
