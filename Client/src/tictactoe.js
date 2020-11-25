@@ -40,6 +40,9 @@ export default class Game {
 
 		this.possibleMoves = [];
 
+		this.loading = false;
+		this.promises = [];
+
 		this.status = {
 			turnCount: turnCount ? turnCount : 1,
 			isEnded: false,
@@ -53,14 +56,13 @@ export default class Game {
 			startingPlayer: null
 		};
 
-		//start recursion loop to check if first (or both) players are computer players
-		console.log('inside constructor, here is the board: ', this.board);
-		console.log('here is the gridReference: ', this.gridReference);
-		console.log('starting player is: ', this.startingPlayer);
 		
+		
+		//Set the starting player - used for minimax algorithm to prefer a draw early or late depending on who had first turn
 		this.setStartingPlayer();
 		this.computerMove();
 	}
+	
 	setStartingPlayer() {
 		let startingPlayer = this.currentPlayer.mark === 'X' ? 'X' : 'O';
 		this.minimaxStatus.startingPlayer = startingPlayer;
@@ -206,7 +208,7 @@ export default class Game {
 			];
 		}
 
-		//return false if game can continue...
+		//returns false if game can continue...
 		else if (this.isDraw(this.getNextMark(), this.getMark(), this.status.turnCount, this.board)) {
 			this.status.isEnded = true;
 			this.status.draw = true;
@@ -419,7 +421,7 @@ export default class Game {
 		console.log('avaliableSpaces:');
 		console.log(avaliableSpaces);
 		
-		let returnArr = [] 
+		let returnArr = []; 
 		
 		filteredArray.forEach((item) => {
 			let tempArr = this.cloneBoard(board);
@@ -620,11 +622,11 @@ export default class Game {
 
 		let index = 0;
 		while (index < avaliableMoves.length) {
-			let board = new Array(0);
-			console.log('board after creation with new Array(0)');
-			console.log(board);
-			board = this.cloneBoard(this.board);
-			console.log(board);
+			//let board = new Array(0);
+			
+			
+			let board = this.cloneBoard(this.board);
+			
 			let [i, j] = avaliableMoves[index];
 			board[i][j] = mark;
 			console.log(
@@ -645,14 +647,14 @@ export default class Game {
 		);
 
 		// check if any of the opposing choices has a win condition - return blocking choice
+		
 		let nextMark = this.getNextMark();
 		index = 0;
 		while (index < avaliableMoves.length) {
-			let board = new Array(0);
-			console.log('board after creation with new Array(0)');
-			console.log(board);
-			board = this.cloneBoard(this.board);
-			console.log(board);
+			//let board = new Array(0);
+			
+			let board = this.cloneBoard(this.board);
+			
 			let [i, j] = avaliableMoves[index];
 			board[i][j] = nextMark;
 			console.log(
@@ -681,7 +683,7 @@ export default class Game {
 
 	//Minimax starter function for higher difficulties
 	bestMove(mark, depth) {
-		
+		this.loading = true;
 		//Pruning to save calculation time on 1st choice if highest difficulty
 		if (depth > 4) {
 			if (this.status.turnCount === 1) {
@@ -710,8 +712,9 @@ export default class Game {
 				move = [a, b];
 			}
 		}
+		this.loading = false;
 		return move;
-
+		
 	}
 
 	//Minimax helper function to score the board - smart draw estimation is not implemented

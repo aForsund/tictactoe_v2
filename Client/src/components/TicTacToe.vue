@@ -85,6 +85,7 @@
         </button>
         
         <button v-if="isEnded" class="button is-primary" @click="viewHistory">View History</button>
+        <button v-if="isLoading" class="is-danger">LOADING....</button>
         
         
       </div>
@@ -101,6 +102,7 @@ export default {
       game: state => state.localGame.instance,
       result: state => state.history.result,
       isEnded: state => state.localGame.instance.status.isEnded,
+      isLoading: state => state.localGame.instance.isLoading,
       playerOneScore: state => state.localGame.playerOneScore,
       playerTwoScore: state => state.localGame.playerTwoScore,
       playerOne: state =>
