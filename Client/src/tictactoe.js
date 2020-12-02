@@ -29,25 +29,42 @@ export default class Game {
 		this.currentPlayer = this.playerOne.turn ? this.playerOne : this.playerTwo;
 
 		
+		//Add delay to make game more fluid - also used to update statusText if loading times exceed delayTime
+		this.turnDelayTime = 1000;
+		this.turnDelay = null;
+		this.messageDelayTime = 500;
+		this.messageDelay = null;
 
-		this.delay = 1000;
+		//Count to pause thread 
+		this.threadBreakNum = 0;
+		
+		//NOTE:
+		//setting a timeout on every iteration is too slow
+		//Need to test optimal setting on slower devices
+		this.threadBreakPause = 50;
 
+		//Board events are pushed to this array
 		this.history = [];
 
 		this.currentMove = null;
 
+		//Boolean to prevent multiple inputs from user
 		this.spamControl = false;
+
 
 		this.possibleMoves = [];
 
-		this.loading = false;
-		this.promises = [];
+		
+		
 
 		this.status = {
 			turnCount: turnCount ? turnCount : 1,
 			isEnded: false,
 			draw: false,
 			winCondition: [],
+			statusText: '',
+			loading: false,
+			showLoading: false
 		};
 
 		this.minimaxStatus = {
@@ -56,13 +73,30 @@ export default class Game {
 			startingPlayer: null
 		};
 
-		
-		
-		//Set the starting player - used for minimax algorithm to prefer a draw early or late depending on who had first turn
 		this.setStartingPlayer();
 		this.computerMove();
 	}
 	
+	//Update status text
+	async updateStatusMessage() {
+		this.status.loading = true;
+		await this.messageDelay;
+		
+		if (this.status.loading) {
+			this.status.statusText = 'Computer is thinking...';
+			this.status.showLoading = true;
+		}
+	}
+
+	//Clear status text
+	clearStatusMessage() {
+		this.threadBreak = 0;
+		this.status.loading = false;
+		this.status.statusText = '';
+		this.status.showLoading = false;
+	}
+
+	//Set the starting player - used for minimax algorithm to prefer a draw early or late depending on who had first turn
 	setStartingPlayer() {
 		let startingPlayer = this.currentPlayer.mark === 'X' ? 'X' : 'O';
 		this.minimaxStatus.startingPlayer = startingPlayer;
@@ -84,11 +118,7 @@ export default class Game {
 	checkStatus() {
 		let board = this.board;
 		let mark = this.getMark();
-		let nextMark = this.getNextMark();
-		console.log(
-			'checkStatus function - mark: ' + mark + ', nextMark: ' + nextMark
-		);
-
+		
 		//logic to check if there is a winner or there is no possible winner (draw)
 
 		//XXX
@@ -210,16 +240,20 @@ export default class Game {
 
 		//returns false if game can continue...
 		else if (this.isDraw(this.getNextMark(), this.getMark(), this.status.turnCount, this.board)) {
+			this.clearStatusMessage();
 			this.status.isEnded = true;
 			this.status.draw = true;
 		} else {
+			this.clearStatusMessage();
 			//no action
 			console.log(`Game cannot be decided on turn ${this.status.turnCount}...`);
 		}
 	}
 
+	//Check if game is a draw - use after all win conditions have been checked
 	isDraw(mark, nextMark, turnCount, board) {
-		//Check if game is a draw - use after all win conditions have been checked
+
+		
 
 		if (turnCount >= 9) return true;
 		else if (turnCount === 8) {
@@ -263,9 +297,6 @@ export default class Game {
 		if (avaliableSpaces.length === 2) possibleOutcomes = 2;
 		else possibleOutcomes = factorial(avaliableSpaces.length)/(2*(factorial(avaliableSpaces.length-2)));
 		
-
-		console.log('possible outcomes: ', possibleOutcomes);
-
 		let results = new Array(possibleOutcomes);
 
 		//create n * options of empty array
@@ -345,7 +376,7 @@ export default class Game {
 			}
 		}
 
-		//Create a branch of nodes for each avaliable space on the board, given by the length of avaliableSpaces array.
+		//Create a branch of nodes for each avaliable space on the board, given by the length of avaliableSpaces array
 		class NodeTree {
 			constructor(levels, mark) {
 				this.levels = levels;
@@ -362,16 +393,13 @@ export default class Game {
 				}
 				for (let i = 0; i < this.levels; i++) {
 					let rest = indexArray.filter((index) => index !== i);
-					console.log(`iteration ${i}, currentIndex ${i}, rest ${rest}`);
 					let newNode = new Node(this.mark, i, rest, 1);
-					console.log('created new node: ', newNode);
 					this.children.push(newNode);
 				}
 			}
 		}
 
 		//Helper function to filter the answer array
-		
 		const checkArray = (arr, subarr) => {
 			for (let i = 0; i< arr.length; i++) {
 				let checker = false;
@@ -387,11 +415,7 @@ export default class Game {
 			}
 			return false;
 		}
-		
 
-		
-
-		
 		const nodeTree = new NodeTree(
 			avaliableSpaces.length,
 			this.getNextMark()
@@ -400,29 +424,15 @@ export default class Game {
 		//Create node tree
 		nodeTree.createMainBranches();
 		
-		//Print all the nodes
-		// const printAll = (node) => {
-		// 	console.log('Node:', node);
-		// 	if (node.children) node.children.forEach((child) => printAll(child));
-		// };
-
-		// printAll(nodeTree);
-		console.log('answer:');
-		console.log(answer);
-
+		//Create and filter array to avoid duplicates
 		let filteredArray = [];
 		answer.forEach(item => {
 			if (filteredArray.length === possibleOutcomes) return;
 			else if (!checkArray(filteredArray, item)) filteredArray.push(item);
 		});
-		console.log('filtered answer:');
-		console.log(filteredArray);
-
-		console.log('avaliableSpaces:');
-		console.log(avaliableSpaces);
-		
+			
+		//Create a return array and push each possible board outcome to it
 		let returnArr = []; 
-		
 		filteredArray.forEach((item) => {
 			let tempArr = this.cloneBoard(board);
 			for(let index = 0; index < item.length; index++) {
@@ -431,16 +441,8 @@ export default class Game {
 			}
 			returnArr.push(tempArr);
 		});
-			
-
-		console.log('returnArr:');
-		console.log(returnArr);
 		
-
 		return returnArr;
-
-		
-		
 	}
 
 
@@ -462,11 +464,7 @@ export default class Game {
 
 	//use magic square to check if a possible win condition can be met
 	checkMagicSquare(testBoard, mark) {
-		console.log('checkMagicSquare function...');
-		console.log('mark: ', mark);
-		console.log('testBoard');
-		console.log(testBoard);
-
+		
 		//Convert board marks to magic square numbers
 		for (let i = 0; i < testBoard.length; i++) {
 			for (let j = 0; j < testBoard[i].length; j++) {
@@ -551,7 +549,6 @@ export default class Game {
 				if (this.validInput(board, [i, j])) avaliableMoves.push([i, j]);
 			}
 		}
-		console.log('avaliable moves: ', avaliableMoves);
 		return avaliableMoves;
 	}
 
@@ -561,8 +558,8 @@ export default class Game {
 		return board[i][j] === '';
 	}
 
-	//confirm input from human player
-	confirmInput(id) {
+	//confirm input from human player - use boolean value to prevent multiple inputs
+	async confirmInput(id) {
 		
 		let field = this.getIndex(id);
 		
@@ -574,6 +571,8 @@ export default class Game {
 		) {
 			this.spamControl = true;
 			this.updateBoard(field);
+			//await a new promise for thread to pause and update DOM..
+			await new Promise(resolve => setTimeout(resolve, 0));
 			this.nextIteration();
 			this.computerMove();
 		}
@@ -591,9 +590,9 @@ export default class Game {
 		}
 	}
 
+	//Generate a true random choice 
 	computerRandomChoice() {
-		console.log("I'm making a random choice");
-		//Dummy algorithm for computer to make a random choice
+		
 		let conditionMet = false;
 		let i = 0;
 		let j = 0;
@@ -605,34 +604,26 @@ export default class Game {
 			//check if choice is valid option
 			if (this.validInput(this.board, [i, j])) conditionMet = true;
 		}
-		console.log('I have chosen ', i, ' and ', j);
 		return [i, j];
 	}
 
+	//Make a smart choice to win or prevent a loss based on current board
 	computerBlockOrWin() {
-		console.log('computerBlockOrWin function');
-		//Check if current player has possibility to win
-
+		
 		let mark = this.getMark();
 
 		//get an array with indexes of possible moves
 		let avaliableMoves = this.getAvaliableMoves(this.board);
 
 		// check if any of the choices have possible win condition - return winning choice
-
 		let index = 0;
 		while (index < avaliableMoves.length) {
-			//let board = new Array(0);
-			
 			
 			let board = this.cloneBoard(this.board);
 			
 			let [i, j] = avaliableMoves[index];
 			board[i][j] = mark;
-			console.log(
-				'printing board from while loop in computerBlockOrWin function - checking potential win'
-			);
-			console.log(board);
+	
 			if (this.checkWinCondition(board, mark)) {
 				console.log(
 					`I have found a win condition on ${avaliableMoves[index]} and will win on this round`
@@ -642,6 +633,7 @@ export default class Game {
 
 			index += 1;
 		}
+
 		console.log(
 			'I have not found any win condtions and will now check to prevent a loss'
 		);
@@ -651,16 +643,13 @@ export default class Game {
 		let nextMark = this.getNextMark();
 		index = 0;
 		while (index < avaliableMoves.length) {
-			//let board = new Array(0);
-			
+						
 			let board = this.cloneBoard(this.board);
 			
 			let [i, j] = avaliableMoves[index];
 			board[i][j] = nextMark;
-			console.log(
-				'printing board from while loop in computerBlockOrWin function - checking potential loss'
-			);
-			console.log(board);
+		
+			
 			if (this.checkWinCondition(board, nextMark)) {
 				console.log(
 					`I have found a loss condition on ${avaliableMoves[index]} and will block this move`
@@ -671,19 +660,21 @@ export default class Game {
 			index += 1;
 		}
 
-		console.log('I have not found any win or loss condition - returning false');
+		console.log('I have not found any win or loss conditions - returning false');
 
 		return false;
 
 	}
+	
+	//Helper function to set minimaxStatus object values
 	createMinimaxPlayers(maxPlayer, minPlayer) {
 		this.minimaxStatus.maxPlayer = maxPlayer;
 		this.minimaxStatus.minPlayer = minPlayer;
 	}
 
 	//Minimax starter function for higher difficulties
-	bestMove(mark, depth) {
-		this.loading = true;
+	async bestMove(mark, depth) {
+		
 		//Pruning to save calculation time on 1st choice if highest difficulty
 		if (depth > 4) {
 			if (this.status.turnCount === 1) {
@@ -702,17 +693,18 @@ export default class Game {
 		let newTurnCount = this.status.turnCount + 1;
 
 		for (let i = 0; i < avaliableMoves.length; i++) {
+			
 			let [a, b] = avaliableMoves[i];
 			let newBoard = this.cloneBoard(this.board);
 			newBoard[a][b] = this.minimaxStatus.maxPlayer;
-			let returnEvaluation = this.minimax(newBoard, depth, false, newTurnCount);
+			let returnEvaluation = await this.minimax(newBoard, depth, false, newTurnCount);
 			
 			if(returnEvaluation > maxEvaluation) {
 				maxEvaluation = returnEvaluation;
 				move = [a, b];
 			}
 		}
-		this.loading = false;
+		
 		return move;
 		
 	}
@@ -720,7 +712,6 @@ export default class Game {
 	//Minimax helper function to score the board - smart draw estimation is not implemented
 	getScore(board, turnCount) {
 
-		console.log('getScore', board, turnCount);
 		let ended = false;
 		let score = 0;
 		
@@ -741,9 +732,17 @@ export default class Game {
 	}
 	
 	//Minimax algorithm - use recursion to get the optimal computer choice
-	
-	minimax(board, depth, maximizing, turnCount) {
-		console.log('minimax, ', board, depth, maximizing, turnCount);
+	async minimax(board, depth, maximizing, turnCount) {
+
+		
+		//await a new promise for thread to pause and update DOM..
+		this.treadBreakNum += 1;
+		if (this.threadBreakNum >= this.threadBreakPause) {
+			await new Promise(resolve => setTimeout(resolve, 0));	
+			this.threadBreakNum = 0;
+		}
+		
+
 		let status = this.getScore(board, turnCount);
 		if (depth === 0 || status.ended) return status.score/turnCount;
 
@@ -757,7 +756,7 @@ export default class Game {
 				let [a, b] = avaliableSpaces[i];
 				let newBoard = this.cloneBoard(board);
 				newBoard[a][b] = this.minimaxStatus.maxPlayer;
-				let evaluation = this.minimax(newBoard, depth - 1, false, newTurnCount);
+				let evaluation = await this.minimax(newBoard, depth - 1, false, newTurnCount);
 				maxEvaluation = Math.max(maxEvaluation, evaluation);
 				//alpha = Math.max(alpha, evaluation);
 				//if (beta <= alpha) break;
@@ -773,7 +772,7 @@ export default class Game {
 				let [a, b] = avaliableSpaces[i];
 				let newBoard = this.cloneBoard(board);
 				newBoard[a][b] = this.minimaxStatus.minPlayer;
-				let evaluation = this.minimax(newBoard, depth - 1, true, newTurnCount);
+				let evaluation = await this.minimax(newBoard, depth - 1, true, newTurnCount);
 				minEvaluation = Math.min(minEvaluation, evaluation);
 				//beta = Math.min(beta, evaluation);
 				//if (beta <= alpha) break;
@@ -782,13 +781,15 @@ export default class Game {
 		}
 	}
 
-	computerChoice() {
+	//Function to make a choice based on difficulty setting
+	async computerChoice() {
+		
 		console.log(
 			"computerChoice function - I'm making a choice based on my difficulty setting, which is ",
 			this.currentPlayer.difficulty
 		);
 		let choice = null;
-		//let optimalMove = null;
+		
 		switch (this.currentPlayer.difficulty) {
 			case 0:
 				choice = this.computerRandomChoice();
@@ -800,19 +801,19 @@ export default class Game {
 				if (!choice) choice = this.computerRandomChoice();
 				break;
 			case 2:
-				choice = this.bestMove(this.getMark(), 2);
+				//Minimax starter function: bestMove(mark, depth)
+				choice = this.computerBlockOrWin();
+				if (!choice) choice = await this.bestMove(this.getMark(), 2);
 				break;
 			case 3:
-				choice = this.bestMove(this.getMark(), 10);
-				//minimax(board, mark, isMaximizing, turnCount, maxDepth, depth = 1)
-				//optimalMove = this.minimax(this.cloneBoard(this.board), this.getMark(), true, this.status.turnCount, 10, 1, 0);
-				//choice = optimalMove.move;
-				//choice = this.bestMove2(this.cloneBoard(this.board), this.getNextMark(), true, this.status.turnCount, 10);
+				//Minimax starter function: bestMove(mark, depth)
+				choice = await this.bestMove(this.getMark(), 10);
 				break;
 			default:
 				choice = this.computerRandomChoice();
 		}
 		console.log('I have chosen, ', choice);
+		
 		return choice;
 	}
 
@@ -822,33 +823,39 @@ export default class Game {
 		if (!this.playerOne.cpu && this.playerOne.turn) return;
 		if (!this.playerTwo.cpu && this.playerTwo.turn) return;
 
-		//add delay
-		console.log('before delay');
-		await new Promise((resolve) => setTimeout(resolve, this.delay));
-		console.log('after delay');
+		
 		//Check if any computer players have next turn and perform move
 		if (
 			(this.playerOne.cpu && this.playerOne.turn) ||
 			(this.playerTwo.cpu && this.playerTwo.turn)
 		) {
-			this.updateBoard(this.computerChoice());
+			//add delay
+			this.turnDelay = new Promise((resolve) => setTimeout(resolve, this.turnDelayTime));
+			this.messageDelay = new Promise((resolve) => setTimeout(resolve, this.messageDelayTime));
+			this.updateStatusMessage(true);
+			//await a new promise for thread to pause and update DOM..
+			await new Promise(resolve => setTimeout(resolve, 100));
+			let choice = await this.computerChoice();
+			await this.turnDelay;
+			this.clearStatusMessage();
+			this.updateBoard(choice);
 			this.nextIteration();
 		}
 		//Check if both players are controlled by computer - excecutes a recursion loop until endcondition is met
 		if (this.playerOne.cpu && this.playerTwo.cpu) this.computerMove();
 	}
 
+	//Update game board with array slice function (this will force Vue.js to draw updates to the array)
 	updateBoard(field) {
-		//Update game board with array slice function (this will force Vue.js to draw updates to the array)
+	
 		this.currentMove = field;
 		let [i, j] = field;
 		this.board[i].splice(j, 1, this.getMark());
 	}
 
+	//Main function to keep track of game status and progress
 	nextIteration() {
-		console.log('nextiteration - starting player is: ', this.startingPlayer);
-		//Main function to keep track of game status and progress
-
+		
 		//Add events to history
 		this.addHistory();
 
@@ -862,8 +869,8 @@ export default class Game {
 		if (!this.status.isEnded) this.newTurn();
 	}
 
+	//Increase turn count & alternate player turns
 	newTurn() {
-		//Increase turn count & alternate player turns
 		this.status.turnCount += 1;
 		this.playerOne.turn = !this.playerOne.turn;
 		this.playerTwo.turn = !this.playerTwo.turn;
@@ -876,6 +883,7 @@ export default class Game {
 		return this.status.winCondition;
 	}
 
+	//Add turn status to history array
 	addHistory() {
 		this.history.push({
 			turn: this.status.turnCount,

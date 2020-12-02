@@ -61,9 +61,10 @@
               <span v-if="isEnded">{{ result.outcome === 'draw' ? 'It\'s a draw' : `${result.outcome.mark} has won` }}</span>
               <span v-else>{{ game.currentPlayer.mark }}'s turn</span>
             </p>
-            <p class="subtitle" v-bind:class="{ 'has-text-primary': isEnded }">
+            <p ref="element" class="subtitle" v-bind:class="{ 'has-text-primary': isEnded }">
               <span v-if="isEnded">Press here to play again</span>
               <span v-else-if="game.history.length === 0">Let's go</span>
+              <span v-else-if="isLoading">{{ statusText }}</span>
               <span v-else
                 >Last move:
                 {{ game.history[game.history.length - 1].player.mark }} to [{{
@@ -83,11 +84,7 @@
         <button class="button is-danger opt" v-on:click="closeGame">
           Close
         </button>
-        
         <button v-if="isEnded" class="button is-primary" @click="viewHistory">View History</button>
-        <button v-if="isLoading" class="is-danger">LOADING....</button>
-        
-        
       </div>
     </transition>
   </div>
@@ -102,7 +99,8 @@ export default {
       game: state => state.localGame.instance,
       result: state => state.history.result,
       isEnded: state => state.localGame.instance.status.isEnded,
-      isLoading: state => state.localGame.instance.isLoading,
+      isLoading: state => state.localGame.instance.status.showLoading,
+      statusText: state => state.localGame.instance.status.statusText,
       playerOneScore: state => state.localGame.playerOneScore,
       playerTwoScore: state => state.localGame.playerTwoScore,
       playerOne: state =>
@@ -120,10 +118,9 @@ export default {
     this.newGame();
     this.unwatchGameStatus = this.$watch("isEnded", newStatus => {
       console.log(`updating isEnded to ${newStatus}`);
-      console.log(this.game.status);
-      console.log(this.game.history);
       if (newStatus) this.endRound();
     });
+    
   },
   beforeDestroy() {
     console.log("** calling unwatchGameStatus **");
