@@ -3,7 +3,7 @@ const passport = require('passport');
 const socketio = require('socket.io');
 
 //Remove cors for production!  <----------
-//const cors = require('cors');
+const cors = require('cors');
 
 
 require('dotenv').config();
@@ -27,7 +27,7 @@ require('./config/passport')(passport);
 app.use(passport.initialize());
 
 //Remove cors for production!!    <---------
-//app.use(cors());
+app.use(cors());
 
 //Body parser middleware
 app.use(express.json());

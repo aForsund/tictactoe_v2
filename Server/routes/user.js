@@ -65,8 +65,22 @@ router.get('/search/:name', passport.authenticate('jwt', { session: false }), as
 
 
 
+//Get challenges from DB
+router.get('/challenges/:name', async (req, res) => {
+  
+  //check if jwt payload matches request name
+  
+  try {
+    let search = await User.findOne({
+      username: req.params.name 
+    });
+    res.json(search.notifications);
+  } catch (err) {
+		res.status(500).json({ message: err.message });
+	}
+});
 
-
+//Test JWT...
 router.get('/posts', utils.isAuth(), (req, res) => {
 	console.log('hello from /posts')
 	const decodedToken = utils.getUserFromHeader(req);

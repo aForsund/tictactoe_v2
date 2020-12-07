@@ -16,8 +16,8 @@ const userSchema = new mongoose.Schema({
         default: 1200
     },
     hash: String,
-    salt: String
-
+    salt: String,
+    notifications: Array
 });
 
 module.exports = mongoose.model('User', userSchema);
