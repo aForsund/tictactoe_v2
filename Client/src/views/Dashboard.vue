@@ -13,15 +13,26 @@
     <div class="tile is-child notification is-dark">
       <Settings />
     </div>
+    <div v-if="online" class="title is-child notification is-info">
+      <Users />
+    </div>
+    <div class="title is-child notification is-dark">
+      <Notifications />
+    </div>
     <div class="tile is-child notification is-danger">
       <p class="title">Test</p>
       <button @click="printUser">Print user</button>
+      <button @click="printUsers">Print users</button>
       <button @click="testJWT">TEST JWT</button>
+      <button @click="printNotifications">Print notifications</button>
+      <div v-if="socket">
+      <p v-for="(user, index) in socket.users" :key="index">{{ index }}: {{ user.username }}</p>
+      </div>
     </div>
     
 
   </div>
-  <div class="tile is-8 is-parent">
+  <div v-if="activeChat" class="tile is-8 is-parent">
     <div class="tile is-child notification is-dark">
       
       <Chat />
@@ -42,30 +53,31 @@
 
 import Settings from "@/components/Settings.vue";
 import Chat from '@/components/Chat.vue';
+import Users from '@/components/Users.vue';
+import Notifications from '@/components/Notifications.vue';
+
 import { mapGetters, mapActions } from "vuex";
 
 export default {
   components: {
     Settings,
-    Chat
+    Chat,
+    Users,
+    Notifications
   },
-  data() {
-    return {
-      socket: null,
-      list: "hi",
-      message: 'Jabadabbadoo',
-      messages: []
-    };
-  },
-
-
   computed: {
-    ...mapGetters("user", ["user"])
+    ...mapGetters("user", ["user", "users", "socket", "activeChat", "online"])
   },
   methods: {
     ...mapActions("user", ["testJWT", 'enableChat']),
     printUser() {
       console.log(this.user);
+    },
+    printUsers() {
+      console.log(this.socket.users);
+    },
+    printNotifications() {
+      console.log(this.socket.notifications);
     }
   }
 };

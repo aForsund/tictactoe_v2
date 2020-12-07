@@ -1,7 +1,7 @@
 import axios from 'axios';
 //import { store } from '../store/store'
 
-const BASE_URL = '';
+const BASE_URL = 'http://localhost:3000';
 
 axios.interceptors.response.use(response => response, error => {if (error.response.status === 401) console.log('logout....')
 return Promise.reject(error)}
@@ -61,5 +61,9 @@ export default {
 		apiClient.defaults.headers.common['Authorization'] = jwt;
 		
 		return apiClient.get('/api/user/posts');
-	}
+  },
+  getChallenges(jwt, username) {
+    apiClient.defaults.headers.common['Authorization'] = jwt;
+    return apiClient.get('api/user/challenges/' + username);
+  }
 };

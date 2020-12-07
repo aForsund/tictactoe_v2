@@ -22,7 +22,7 @@
 </template>
 
 <script>
-import { mapActions } from 'vuex';
+import { mapActions, mapGetters } from 'vuex';
 import NavBar from "@/components/NavBar.vue";
 
 //import Notification from "@/components/Notification.vue";
@@ -38,7 +38,8 @@ export default {
     NavBar
   },
   methods: {
-		...mapActions('user', ['setUser', 'logOut', 'testJWT'])
+    ...mapActions('user', ['setUser', 'logOut', 'testJWT']),
+    ...mapGetters('user', ['socket'])
 	},
 	created() {
     
@@ -51,6 +52,9 @@ export default {
     }
     
   },
+  mounted() {
+    if(this.socket) this.socket.on('hello', () => console.log('hello from mounted...'))
+  }
 	
 	
 };

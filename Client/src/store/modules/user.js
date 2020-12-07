@@ -10,6 +10,7 @@ export const namespaced = true;
 
 export const state = {
   user: null,
+  users: null,
   modal: {
     show: false,
     resolve: null,
@@ -96,8 +97,10 @@ export const mutations = {
     },
     OPEN_SOCKET_CONNECTION(state) {
       state.socket = new MySocket(state.user);
+      
     },
     CLOSE_SOCKET_CONNECTION(state) {
+      state.socket.logOut();
       state.socket = null;
     },
     JOIN_CHAT(state) {
@@ -110,6 +113,22 @@ export const mutations = {
     },
     SEND_MESSAGE(state, message) {
       state.socket.sendMessage(message);
+    },
+    LINK_USERS_ARRAY(state) {
+      if (state.socket) state.users = state.socket.users;
+    },
+    CHALLENGE(state, user) {
+      state.socket.challenge(user);
+    },
+    ACCEPT(challenge) {
+      console.log('accepted challenge', challenge);
+
+    },
+    DISMISS(state, notification) {
+      console.log('dismiss notification', notification);
+      state.socket.removeNotification(state.user.name, notification.id);
+      //let index = state.socket.notifications.findIndex(index => index === challenge);
+      //if (index !== -1) state.socket.notifications.splice(index, 1);
     }
 
   }
@@ -163,6 +182,7 @@ export const actions = {
     enableOnline({ commit }) {
       commit('ENABLE_ONLINE');
       commit('OPEN_SOCKET_CONNECTION');
+      commit('LINK_USERS_ARRAY');
     },
     disableOnline({ commit }) {
       commit('LEAVE_CHAT')
@@ -187,7 +207,25 @@ export const actions = {
     },
     sendMessage({ commit}, message) {
       console.log('sending message ', message);
-      commit('SEND_MESSAGE', message)
+      commit('SEND_MESSAGE', message);
+    },
+    challenge({ commit }, user) {
+      console.log('challenging', user);
+      commit('CHALLENGE', user);
+    },
+    accept({ commit }, notification) {
+      console.log('accepting challenge');
+      console.log(notification);
+      commit('ACCEPT', notification);
+    },
+    dismiss({ commit }, notification) {
+      console.log('dismissing challenge');
+      commit('DISMISS', notification);
+    },
+    getChallenges() {
+      API_interface.getChallenges(state.user.token, state.user.name)
+        .then(response => console.log(response))
+        .catch(error => console.log(error));
     }
 
 
@@ -209,6 +247,9 @@ export const getters = {
     },
     user(state) {
       return state.user;
+    },
+    users(state) {
+      return state.socket.users;
     },
     socket(state){
       return state.socket;

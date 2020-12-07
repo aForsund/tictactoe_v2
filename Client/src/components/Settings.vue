@@ -20,7 +20,7 @@ export default {
         };
     },
     computed: {
-        ...mapGetters("user", ["loggedIn", "online", "messages"]),
+        ...mapGetters("user", ["loggedIn", "online", "messages", "activeChat"]),
     },
     methods: {
         ...mapActions("user", ["enableOnline", "disableOnline", "joinChat", "leaveChat"]),
