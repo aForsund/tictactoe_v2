@@ -126,7 +126,7 @@ export const mutations = {
     },
     DISMISS(state, notification) {
       console.log('dismiss notification', notification);
-      state.socket.removeNotification(state.user.name, notification.id);
+      state.socket.removeNotification(state.user.name, notification);
       //let index = state.socket.notifications.findIndex(index => index === challenge);
       //if (index !== -1) state.socket.notifications.splice(index, 1);
     }

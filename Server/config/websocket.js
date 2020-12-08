@@ -1,6 +1,6 @@
 
 const socketUtils = require('../lib/socketUtils');
-
+const { v4: uuidv4 } = require('uuid');
 
 const botName = 'Chatbot';
 
@@ -44,27 +44,47 @@ module.exports = (socket, io) => {
               return;
             }
             let challenger = users[index];
-            console.log('trying to update DB...')
-            let proceed = await socketUtils.addNotification( object.username, { challenge: true, username: challenger.username } );
-            if (proceed) socket.broadcast.to(object.id).emit('updateNotifications');
+            console.log('trying to update DB...');
+            let id = uuidv4();
+            let challengeSent = await socketUtils.addNotification( object.username, { challenge: true, username: challenger.username, id: id } );
+            let receiptSent = false;
+            
+            if (challengeSent) receiptSent = await socketUtils.addNotification( challenger.username, { sentChallenge: true, username: object.username, id: id });
+            if (challengeSent && receiptSent) {
+              socket.broadcast.to(object.id).emit('updateNotifications');
+              socket.emit('updateNotifications');
+            }
             else handleErrors('notification', 'User already challenged...');
         });
 
-        socket.on('removeNotification', async (name, id) => {
-           let proceed = await socketUtils.removeNotification(name, id);
-           if (proceed) {
-            let index = users.findIndex(index => index.username === name);
-            if (index === -1) {
-              handleErrors('notification', 'Error updating notifications..');
-              return;
-            }
+        socket.on('removeNotification', async (name, notification) => {
+          console.log('removeNotification', notification);
+          let proceed = await socketUtils.removeNotification(name, notification.id);
+          
+          console.log('proceed: ', proceed);
+          if (proceed) {
+            socket.emit('updateNotifications');  
+            
+          } else {
             handleErrors('notification', 'Error updating notifications..');
-            let user = users[index];
-            console.log(users);
-            console.log(user.id);
-            socket.emit('updateNotifications');
           }
-
+          if (notification.challenge && proceed) {
+            console.log('trying to remove challenge from sender................');
+            console.log(notification.username);
+            console.log(notification.id);
+            proceed = await socketUtils.removeNotification(notification.username, notification.id);
+            console.log('proceed after trying to remove from DB..', proceed);
+            if (proceed) {
+              let index = users.findIndex(index => notification.username === index.username);
+              if (index === -1) {
+                handleErrors('notification', 'Error updating notifications..');
+                return;
+              }
+              let user = users[index];
+              socket.broadcast.to(user.id).emit('updateNotifications');
+            }
+          }
+          
         });
 
         socket.on('leaveChat', () => {

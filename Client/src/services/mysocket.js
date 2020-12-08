@@ -101,8 +101,8 @@ export default class MySocket {
         this.socket.emit('confirmConnection', id);
     }
 
-    removeNotification(name, id) {
-      this.socket.emit('removeNotification', name, id);
+    removeNotification(name, notification) {
+      this.socket.emit('removeNotification', name, notification);
     }
 
     selectField(field) {

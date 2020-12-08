@@ -1,4 +1,4 @@
-const { v4: uuidv4 } = require('uuid');
+
 const mongoose = require('mongoose');
 const User = mongoose.model('User');
 
@@ -16,14 +16,12 @@ module.exports = {
     };
   },
   addNotification: async (user, notification) => {
-    let add = true;
-    console.log('user: ', user);
-    console.log('notification: ', notification);
-     
+    let success = true;
+         
     try {
       await User.findOne({ username: user }, (err, res) => {
         if(err) {
-          add = false;
+          success = false;
           throw new Error(err.message, null);
         } else {
           let length = res.notifications.length;
@@ -32,12 +30,11 @@ module.exports = {
             
             if (res.notifications[i].username === notification.username) {
               console.log(`${user} already challenged by ${notification.username}`);
-              add = false;
-              return add;
+              success = false;
+              return success;
             }
           }
-          if (add) {
-            notification.id = uuidv4();
+          if (success) {
             res.notifications.push(notification);
             res.save();
           }
@@ -48,7 +45,7 @@ module.exports = {
       console.log(error);
 
     }
-    return add;
+    return success;
     
   
   },
