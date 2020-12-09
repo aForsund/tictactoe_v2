@@ -53,7 +53,7 @@ export const mutations = {
         parent: this.parent,
         component: LoginModal,
         hasModalCard: true,
-        customClass: "custom-class custom-class-2",
+        customClass: "",
         trapFocus: true,
         events: {
           logIn: packet => {
@@ -67,6 +67,7 @@ export const mutations = {
         } 
       });
     },
+
     HIDE_LOGIN(state) {
       console.log('hiding modal...');
       state.modal.instance.close();
@@ -120,8 +121,9 @@ export const mutations = {
     CHALLENGE(state, user) {
       state.socket.challenge(user);
     },
-    ACCEPT(challenge) {
+    ACCEPT(state, challenge) {
       console.log('accepted challenge', challenge);
+      state.socket.acceptChallenge(challenge);
 
     },
     DISMISS(state, notification) {
@@ -129,8 +131,10 @@ export const mutations = {
       state.socket.removeNotification(state.user.name, notification);
       //let index = state.socket.notifications.findIndex(index => index === challenge);
       //if (index !== -1) state.socket.notifications.splice(index, 1);
+    },
+    JOIN_MULTIPLAYER_GAME(state, instance) {
+      state.socket.joinGame(state.user.name, instance.id);
     }
-
   }
 export const actions = {
     logIn({ commit }, data) {
@@ -213,10 +217,9 @@ export const actions = {
       console.log('challenging', user);
       commit('CHALLENGE', user);
     },
-    accept({ commit }, notification) {
-      console.log('accepting challenge');
-      console.log(notification);
-      commit('ACCEPT', notification);
+    accept({ commit }, challenge) {
+      console.log(`accepting ${challenge}`);
+      commit('ACCEPT', challenge);
     },
     dismiss({ commit }, notification) {
       console.log('dismissing challenge');
@@ -226,7 +229,13 @@ export const actions = {
       API_interface.getChallenges(state.user.token, state.user.name)
         .then(response => console.log(response))
         .catch(error => console.log(error));
+    },
+    joinGame({ commit }, instance) {
+      console.log('attempting to join multiplayer game...');
+      commit('JOIN_MULTIPLAYER_GAME', instance);
+      
     }
+
 
 
     

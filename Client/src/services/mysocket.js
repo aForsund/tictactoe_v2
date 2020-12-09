@@ -11,6 +11,7 @@ export default class MySocket {
         this.chat = [];
         this.users = [];
         this.notifications = [];
+        this.instances = [];
         
         this.activeMultiplayerGame = false;
         this.initSocket();
@@ -73,6 +74,21 @@ export default class MySocket {
 
         this.socket.on('notification', (payload) => console.log(payload));
 
+        this.socket.on('challengeAccepted', challenge => {
+          console.log('challenge was accepted: ', challenge);
+          let index = this.notifications.findIndex(index => challenge.id === index.id);
+          console.log(index);
+          this.notifications[index].accepted = true;
+          console.log(this.notifications[0]);
+        });
+
+        this.socket.on('displayGameInstance', instance => {
+          //Use slice to make Vue.js update changes automatically...
+          let index = this.instances.length;
+          this.instances.push(null);
+          this.instances.splice(index, 1, instance);
+        });
+
     }
 
     connect() {
@@ -95,6 +111,14 @@ export default class MySocket {
 
     challenge(user) {
         this.socket.emit('challenge', user);
+    }
+
+    acceptChallenge(challenge) {
+      this.socket.emit('acceptChallenge', challenge)
+    }
+
+    joinGame(user, gameId) {
+      this.socket.emit('joinGame', user, gameId);
     }
 
     confirmConnection(id) {

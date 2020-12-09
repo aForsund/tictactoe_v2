@@ -46,10 +46,24 @@ module.exports = (socket, io) => {
             let challenger = users[index];
             console.log('trying to update DB...');
             let id = uuidv4();
-            let challengeSent = await socketUtils.addNotification( object.username, { challenge: true, username: challenger.username, id: id } );
+            let challengeSent = await socketUtils.addNotification( object.username, 
+              { 
+                challenge: true, 
+                challenger: challenger.username,
+                receiver: object.username,
+                id: id 
+              } 
+            );
             let receiptSent = false;
             
-            if (challengeSent) receiptSent = await socketUtils.addNotification( challenger.username, { sentChallenge: true, username: object.username, id: id });
+            if (challengeSent) receiptSent = await socketUtils.addNotification( challenger.username, 
+              { 
+                sentChallenge: true, 
+                challenger: challenger.username,
+                receiver: object.username,
+                id: id 
+              }
+            );
             if (challengeSent && receiptSent) {
               socket.broadcast.to(object.id).emit('updateNotifications');
               socket.emit('updateNotifications');
@@ -61,30 +75,37 @@ module.exports = (socket, io) => {
           console.log('removeNotification', notification);
           let proceed = await socketUtils.removeNotification(name, notification.id);
           
-          console.log('proceed: ', proceed);
+          
           if (proceed) {
             socket.emit('updateNotifications');  
-            
+            if (notification.challenge) {
+              //Remove sent challenge notification from challenger
+              proceed = await socketUtils.removeNotification(notification.challenger, notification.id);
+              if (proceed) {
+                let index = users.findIndex(index => notification.challenger === index.username);
+                if (index === -1) {
+                  handleErrors('notification', 'Challenger is not online..');
+                  return;
+                }
+                let user = users[index];
+                socket.broadcast.to(user.id).emit('updateNotifications');
+              }
+            } else if (notification.sentChallenge) {
+              //Remove challenge from challenged
+              proceed = await socketUtils.removeNotification(notification.receiver, notification.id);
+              if (proceed) {
+                let index = users.findIndex(index => notification.receiver === index.username);
+                if (index === -1) {
+                  handleErrors('notification', 'Receiver is not online..');
+                  return;
+                }
+                let user = users[index];
+                socket.broadcast.to(user.id).emit('updateNotifications');
+              }
+            }
           } else {
             handleErrors('notification', 'Error updating notifications..');
           }
-          if (notification.challenge && proceed) {
-            console.log('trying to remove challenge from sender................');
-            console.log(notification.username);
-            console.log(notification.id);
-            proceed = await socketUtils.removeNotification(notification.username, notification.id);
-            console.log('proceed after trying to remove from DB..', proceed);
-            if (proceed) {
-              let index = users.findIndex(index => notification.username === index.username);
-              if (index === -1) {
-                handleErrors('notification', 'Error updating notifications..');
-                return;
-              }
-              let user = users[index];
-              socket.broadcast.to(user.id).emit('updateNotifications');
-            }
-          }
-          
         });
 
         socket.on('leaveChat', () => {
@@ -96,17 +117,77 @@ module.exports = (socket, io) => {
         });  
 
         socket.on('sendMessage', message => {
-            console.log('message received...');
-            let index = users.findIndex(index => index.id === socket.id);
-            if (index !== -1) {
-                console.log('message is', message);
-                socket.emit('message', socketUtils.formatMessage('You', message));
-                socket.broadcast.to('chat').emit('message', socketUtils.formatMessage(socket.id, message));
-            } else {
-                console.log('user is not part of chat...')
-            }
-        })
+          console.log('message received...');
+          let index = users.findIndex(index => index.id === socket.id);
+          if (index !== -1) {
+              console.log('message is', message);
+              socket.emit('message', socketUtils.formatMessage('You', message));
+              socket.broadcast.to('chat').emit('message', socketUtils.formatMessage(socket.id, message));
+          } else {
+              console.log('user is not part of chat...')
+          }
+        });
         
+        socket.on('acceptChallenge', challenge => {
+          console.log(`${socket.id} accepted challenge..`);
+          console.log('challenge: ');
+          console.log(challenge);
+          let index = users.findIndex(index => challenge.challenger === index.username);
+          if (index === -1) {
+            handleErrors('notification', 'Challenger is not online...');
+            return;
+          }
+          let instance = {
+            id: challenge.id, 
+            playerOne: {
+              player: challenge.receiver,
+              joined: false
+            }, 
+            playerTwo: {
+              player: challenge.challenger,
+              joined: false
+            }
+          }
+          
+          multiplayerInstances.push(instance);
+
+          socket.emit('displayGameInstance', instance);
+          socket.broadcast.to(users[index].id).emit('displayGameInstance', instance)
+          
+
+          
+        });
+
+        socket.on('joinGame', (user, id) => {
+          let index = multiplayerInstances.findIndex(index => id === index.id);
+          let instance = multiplayerInstances[index];
+          if (user === instance.playerOne.player) {
+            instance.playerOne.joined = true;
+            instance.playerOne.id = socket.id;
+
+          } else if (user === instance.playerTwo.player) {
+            instance.playerTwo.joined = true;
+            instance.playerTwo.id = socket.id
+          } else {
+            handleErrors('notification', 'Something went wrong with starting mulitplayer instance...');
+            return;
+          }
+          socket.join(id, () => {
+            if (instance.playerOne.joined && instance.playerTwo.joined) {
+              io.to(id).emit('notification', `All players have successfully joined game ${instance}`);
+            }
+            else {
+              let index = users.findIndex(index => index.username === instance.playerOne.joined ? instance.playerTwo.player : instance.playerOne.player);
+              let user = users[index];
+              socket.broadcast.to(user.id).emit('displayGameInstance', instance);
+              socket.emit('notification', `You have successfully joined game ${instance}`);
+            }
+            
+
+            
+          });
+        })
+
         socket.on('disconnect', () => {
             let user = [null];
             let index = users.findIndex(index => index.id === socket.id);

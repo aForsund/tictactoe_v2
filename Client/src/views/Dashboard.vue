@@ -19,6 +19,9 @@
     <div class="title is-child notification is-dark">
       <Notifications />
     </div>
+    <div class="title is-child notification is-dark">
+      <GameInstances />
+    </div>
     <div class="tile is-child notification is-danger">
       <p class="title">Test</p>
       <button @click="printUser">Print user</button>
@@ -55,6 +58,7 @@ import Settings from "@/components/Settings.vue";
 import Chat from '@/components/Chat.vue';
 import Users from '@/components/Users.vue';
 import Notifications from '@/components/Notifications.vue';
+import GameInstances from '@/components/GameInstances.vue'
 
 import { mapGetters, mapActions } from "vuex";
 
@@ -63,7 +67,8 @@ export default {
     Settings,
     Chat,
     Users,
-    Notifications
+    Notifications,
+    GameInstances
   },
   computed: {
     ...mapGetters("user", ["user", "users", "socket", "activeChat", "online"])

@@ -1,20 +1,20 @@
 <template>
     <div>
-        <h1 class="title">Notifications</h1>
+        <h1 class="title">Game Instances</h1>
         <div v-if="socket">
-            <Notification v-for="(notification, index) in socket.notifications" :key="index" :notification="notification" />
+            <GameInstance v-for="(instance, index) in socket.instances" :key="index" :instance="instance" />
         </div>
         
     </div>
 </template>
 
 <script>
-import Notification from '@/components/Notification.vue';
+import GameInstance from '@/components/GameInstance.vue';
 import { mapGetters } from 'vuex';
 
 export default {
     components: {
-        Notification
+        GameInstance
     },
     computed: {
         ...mapGetters("user", ["socket"]),
