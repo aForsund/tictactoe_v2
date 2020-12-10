@@ -12,8 +12,6 @@ export default class MySocket {
         this.users = [];
         this.notifications = [];
         this.instances = [];
-        
-        this.activeMultiplayerGame = false;
         this.initSocket();
         this.connect();
         
@@ -55,8 +53,6 @@ export default class MySocket {
             if (response) {
               this.notifications.slice(this.notifications.length);
               this.notifications = response.data;
-              console.log('notifications: ')
-              console.log(this.notifications);
             }
         });
 
@@ -82,13 +78,21 @@ export default class MySocket {
           console.log(this.notifications[0]);
         });
 
-        this.socket.on('displayGameInstance', instance => {
+        this.socket.on('updateGameInstance', instance => {
           //Use slice to make Vue.js update changes automatically...
-          let index = this.instances.length;
-          this.instances.push(null);
-          this.instances.splice(index, 1, instance);
+          let index = this.instances.findIndex(index => index.id === instance.id);
+          if (index === -1) {
+            index = this.instances.length;
+            this.instances.push(instance);
+            this.instances.splice(index, 1, instance);
+
+          }
+          else {
+            this.instances.splice(index, 1, instance);
+          }
         });
 
+        
     }
 
     connect() {
@@ -119,6 +123,7 @@ export default class MySocket {
 
     joinGame(user, gameId) {
       this.socket.emit('joinGame', user, gameId);
+      
     }
 
     confirmConnection(id) {
@@ -147,6 +152,7 @@ export default class MySocket {
 
     leaveGame() {
         this.socket.emit('leaveGame');
+        
     }
     logOut() {
         this.socket.close();

@@ -44,8 +44,12 @@
     
 
 
+  </div>
+  <div v-if="activeInstance" class="tile is-8 is-parent">
+    <div class="tile is-child is-dark">
+      <MultiplayerGame :instance="activeInstance"/>
     </div>
-
+  </div>
   
 </div>
   </div>
@@ -59,6 +63,7 @@ import Chat from '@/components/Chat.vue';
 import Users from '@/components/Users.vue';
 import Notifications from '@/components/Notifications.vue';
 import GameInstances from '@/components/GameInstances.vue'
+import MultiplayerGame from '@/components/MultiplayerGame.vue';
 
 import { mapGetters, mapActions } from "vuex";
 
@@ -68,13 +73,20 @@ export default {
     Chat,
     Users,
     Notifications,
-    GameInstances
+    GameInstances,
+    MultiplayerGame
   },
   computed: {
-    ...mapGetters("user", ["user", "users", "socket", "activeChat", "online"])
+    ...mapGetters("user", ["user", "users", "socket", "activeChat", "online", "activeInstance"]),
+    
+
   },
   methods: {
-    ...mapActions("user", ["testJWT", 'enableChat']),
+    ...mapActions("user", ["testJWT", 'enableChat', 'activateInstance']),
+    getInstance(id) {
+      let index = this.socket.instances.findIndex(index => index.id === id);
+      return this.socket.instances[index];
+    },
     printUser() {
       console.log(this.user);
     },

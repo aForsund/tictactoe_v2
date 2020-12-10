@@ -19,7 +19,5 @@ export default {
     computed: {
         ...mapGetters("user", ["socket"]),
     },
-    
-
 }
 </script>

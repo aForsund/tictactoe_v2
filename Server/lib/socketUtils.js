@@ -16,6 +16,8 @@ module.exports = {
     };
   },
   addNotification: async (user, notification) => {
+    console.log('trying to push notification to ', user);
+    console.log(notification);
     let success = true;
          
     try {
@@ -24,12 +26,14 @@ module.exports = {
           success = false;
           throw new Error(err.message, null);
         } else {
+          console.log('response: ')
+          console.log(res);
           let length = res.notifications.length;
           console.log('length: ', length);
           for (let i = 0; i < length; i++) {
             
-            if (res.notifications[i].username === notification.username) {
-              console.log(`${user} already challenged by ${notification.username}`);
+            if (res.notifications[i].challenger === notification.challenger && res.notifications[i].challenge) {
+              console.log(`${user} already challenged by ${notification.challenger}`);
               success = false;
               return success;
             }

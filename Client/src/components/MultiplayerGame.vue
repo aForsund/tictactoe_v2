@@ -1,13 +1,21 @@
 <template>
-  <div class="container has-text-centered tictactoe">
+  <div>
+    <div v-if="!instance.start">
+        Waiting for game to start....
+    </div>
+    <div v-else>{{ instance }}</div>
+    <!--
+    <div class="container has-text-centered tictactoe">
     <transition name="fade">
+      
+      
       <div class="columns is-mobile">
         <div class="column">
           <div>
-            <h1 class="subtitle" key="playerOne">X: {{ playerOne }}</h1>
+            <h1 class="subtitle" key="playerOne">X: {{ instance.playerOne.player }}</h1>
 
-            <h1 class="title" :key="playerOneScore">
-              {{ playerOneScore }}
+            <h1 class="title" :key="instance.playerOne.score">
+              {{ instance.playerOne.score }}
             </h1>
           </div>
         </div>
@@ -15,17 +23,17 @@
           <div>
             <h1 class="subtitle" key="turn">Turn</h1>
 
-            <h1 class="title" :key="game.status.turnCount">
-              {{ game.status.turnCount }}
+            <h1 class="title" :key="instance.game.status.turnCount">
+              {{ instance.game.status.turnCount }}
             </h1>
           </div>
         </div>
         <div class="column">
           <div>
-            <h1 class="subtitle" key="playerTwo">O: {{ playerTwo }}</h1>
+            <h1 class="subtitle" key="playerTwo">O: {{ instance.playerTwo.player }}</h1>
 
-            <h1 class="title" :key="playerTwoScore">
-              {{ playerTwoScore }}
+            <h1 class="title" :key="instance.playerTwo.score">
+              {{ instance.playerTwo.score }}
             </h1>
           </div>
         </div>
@@ -33,9 +41,9 @@
     </transition>
 
     <div class="board">
-      <div v-for="(n, i) in game.board" :key="`row${i + 1}`" class="row">
+      <div v-for="(n, i) in instance.game.board" :key="`row${i + 1}`" class="row">
         <div
-          v-for="(n, j) in game.board[i]"
+          v-for="(n, j) in instance.game.board[i]"
           class="cell"
           :key="`row${i + 1}col${j + 1}`"
           v-bind:id="`row${i + 1}col${j + 1}`"
@@ -48,7 +56,7 @@
           @click="confirmInput(`row${i + 1}col${j + 1}`)"
         >
           <transition-group name="fade">
-            <span :key="`row${i + 1}col${j + 1}`">{{ game.board[i][j] }}</span>
+            <span :key="`row${i + 1}col${j + 1}`">{{ instance.game.board[i][j] }}</span>
           </transition-group>
         </div>
       </div>
@@ -59,17 +67,17 @@
           <div class="pt-1" v-on:click="handleClick">
             <p class="title" v-bind:class="{ 'has-text-primary': isEnded }">
               <span v-if="isEnded">{{ result.outcome === 'draw' ? 'It\'s a draw' : `${result.outcome.mark} has won` }}</span>
-              <span v-else>{{ game.currentPlayer.mark }}'s turn</span>
+              <span v-else>{{ instance.game.currentPlayer.mark }}'s turn</span>
             </p>
             <p ref="element" class="subtitle" v-bind:class="{ 'has-text-primary': isEnded }">
               <span v-if="isEnded">Press here to play again</span>
-              <span v-else-if="game.history.length === 0">Let's go</span>
+              <span v-else-if="instance.game.history.length === 0">Let's go</span>
               <span v-else-if="isLoading">{{ statusText }}</span>
               <span v-else
                 >Last move:
-                {{ game.history[game.history.length - 1].player.mark }} to [{{
-                  game.history[game.history.length - 1].move[0] + 1
-                }}, {{ game.history[game.history.length - 1].move[1] + 1 }}]
+                {{ instance.game.history[instance.game.history.length - 1].player.mark }} to [{{
+                  instance.game.history[instance.game.history.length - 1].move[0] + 1
+                }}, {{ instance.game.history[instance.game.history.length - 1].move[1] + 1 }}]
               </span>
             </p>
           </div>
@@ -88,106 +96,53 @@
       </div>
     </transition>
   </div>
+  -->
+  </div>
 </template>
 
 <script>
-import { mapState } from "vuex";
+
 
 export default {
-  computed: {
-    ...mapState({
-      game: state => state.localGame.instance,
-      result: state => state.history.result,
-      isEnded: state => state.localGame.instance.status.isEnded,
-      isLoading: state => state.localGame.instance.status.showLoading,
-      statusText: state => state.localGame.instance.status.statusText,
-      playerOneScore: state => state.localGame.playerOneScore,
-      playerTwoScore: state => state.localGame.playerTwoScore,
-      playerOne: state =>
-        state.localGame.instance.playerOne.cpu
-          ? `CPU#${state.localGame.instance.playerOne.difficulty}`
-          : "Player",
-
-      playerTwo: state =>
-        state.localGame.instance.playerTwo.cpu
-          ? `CPU#${state.localGame.instance.playerTwo.difficulty}`
-          : "Player"
-    })
-  },
-  created() {
-    this.newGame();
-    this.unwatchGameStatus = this.$watch("isEnded", newStatus => {
-      console.log(`updating isEnded to ${newStatus}`);
-      if (newStatus) this.endRound();
-    });
-    
-  },
-  beforeDestroy() {
-    console.log("** calling unwatchGameStatus **");
-    this.unwatchGameStatus();
+  props: {
+    instance: [Object]
   },
   data() {
     return {
-      historyObj: {},
       processingInput: false
     };
   },
   methods: {
-    newGame() {
-      this.$store.commit("NEW_GAME");
-    },
+    
     isHighlighted(id) {
-      return this.$store.state.localGame.instance.status.winCondition.includes(
+      return this.instance.game.status.winCondition.includes(
         id
       );
     },
     isLastMove(id) {
-      if (this.game.currentMove) {
-        let [i, j] = this.game.currentMove;
-
-        return this.game.gridReference[i][j] === id;
+      if (this.instance.game.currentMove) {
+        let [i, j] = this.instance.game.currentMove;
+        return this.instance.game.gridReference[i][j] === id;
       }
     },
     viewHistory() {
       this.$store.commit("VIEW_HISTORY");
     },
     endRound() {
-      this.historyObj.history = this.history;
-      this.historyObj.outcome = this.game.status.draw
-        ? "draw"
-        : this.game.currentPlayer;
-      this.historyObj.winCondition = this.game.status.winCondition;
-      this.historyObj.board = this.game.board;
-      this.$store.commit("SAVE_RESULT", this.historyObj);
-      this.$store.commit("SAVE_HISTORY", this.game.history);
-      this.$store.commit("SAVE_BOARD", this.game.board);
-      this.$store.commit("CHANGE_STEP", this.game.status.turnCount - 1);
-      this.$store.commit(
-        "END_ROUND",
-        this.game.status.draw ? "draw" : this.game.currentPlayer.mark
-      );
-    },
-    resetGame() {
-      this.$store.commit("RESET_GAME");
-      this.newGame();
+      console.log('endround...');
     },
     closeGame() {
-      this.$store.commit("RESET_GAME");
-      this.$store.commit("CLOSE_GAME");
+      console.log('closegame...');
     },
     confirmInput(id) {
       console.log(id);
       if (this.processingInput === true) return;
       else {
         this.processingInput = true;
-        if (!this.isEnded) this.game.confirmInput(id);
+        if (!this.isEnded) console.log('input....');
         this.processingInput = false;
       }
     },
-    handleClick() {
-      console.log("handleClick method");
-      if (this.isEnded) this.newGame();
-    }
   }
 };
 </script>
