@@ -2,7 +2,7 @@
 
 This project is in development.
 
-See live demo of this version [here](https://shrouded-waters-13601.herokuapp.com/).
+See live demo of this version [here](https://shrouded-waters-13601.herokuapp.com/). Note this demo does not reflec latest progress. New demo will be deployed soon.
 
 See live demo of first version [here](https://cryptic-sea-66034.herokuapp.com) and repository [here](https://github.com/aForsund/tictactoe).
 
@@ -26,11 +26,20 @@ Update 16/11/2020
 - Vue.js implementation is more advanced and has most of the functionality in place
 - Node.js server checks for token date validity
 
+Update 10/12/2020
+
+- Socket.io implemented on server and client with mongoDB and API integration. Working infrastructure in place for chat room and multiplayer instances.
+- Notifications are stored on MongoDB cloud server.
+- Status text updating while client CPU is processing next move.
+- A few bugs fixed in local game implementation.
+- Dashboard view receives notifications and multiplayer game instances dynamically. Player can choose game instance to display.
+
 Remaining work before completion of project:
 
-- Socket.io implementation to host player vs player instances
-- Expand API and mongoDB implementation to store multiplayer games and rank of each player
+- Expand API and mongoDB implementation to store multiplayer games instances and played games in addition to
+- Ranking system
 - Further implement functionality in Vue.js
+- Additional fail safe implementation required on parts of the code
 - Bug fixes
 
 ### Front end
