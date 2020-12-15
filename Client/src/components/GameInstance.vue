@@ -1,7 +1,7 @@
 <template>
   <div>
       <button class="button is-primary" @click="clickInstance()">
-        <span v-if="instance.start">
+        <span v-if="instance.started">
           
           {{`
             Game vs ${instance.playerOne.player === user.name ? instance.playerOne.player : instance.playerTwo.player} -
@@ -24,29 +24,17 @@ export default {
   props: {
     instance: [Object]
   },
-  data() {
-    return {
-      count: 0
-    }
-  },
   computed: {
     ...mapGetters('user', ['user', 'activeInstance'])
   },
   methods: {
     ...mapActions('user', ['dismiss', 'joinGame', 'activateInstance']),
-    clickInstance(instance) {
+    clickInstance() {
       
-      if(this.count >= 10) {
-        console.log(instance);
-        console.log(this.user);
-      }
-      else {
-
+      if (!this.instance.started) this.joinGame(this.instance);
+      else this.activateInstance(this.instance.id);
       
-      this.joinGame(this.instance);
-      this.activateInstance(this.instance.id);
-      this.count = this.count + 1;
-      } 
+      
     },
   }
 }

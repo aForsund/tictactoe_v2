@@ -1,6 +1,8 @@
 <template>
     <div>
-        <h1 class="title">Notifications</h1>
+      <div class="has-text-right is-clipped"></div>
+        <h1 class="title">Notifications<i class="fas fa-angle-down is-pulled-right"></i></h1>
+        
         <div v-if="socket">
             <Notification v-for="(notification, index) in socket.notifications" :key="index" :notification="notification" />
         </div>

@@ -1,6 +1,7 @@
 
 const mongoose = require('mongoose');
 const User = mongoose.model('User');
+const Game = mongoose.model('Game');
 
 
 module.exports = {
@@ -21,7 +22,7 @@ module.exports = {
     let success = true;
          
     try {
-      await User.findOne({ username: user }, (err, res) => {
+      await User.findOne({ username: user }, async (err, res) => {
         if(err) {
           success = false;
           throw new Error(err.message, null);
@@ -40,7 +41,7 @@ module.exports = {
           }
           if (success) {
             res.notifications.push(notification);
-            res.save();
+            await res.save();
           }
         }
       })
@@ -71,35 +72,66 @@ module.exports = {
       console.log(error);
     }
     return success;
-
-    /*
-    let update = true;
-    try {
-      User.findOne({ username: user }, (err, res) => {
-        if(err) {
-          update = false;
-          throw new Error(err.message, null);
-        } else {
-          let length = res.notifications.length;
-          console.log('length: ', length);
-          console.log(res.notifications);
-
-          for (let i = 0; i < length; i++) {
-            if (res.notifications[i].id === notificationId) {
-              console.log('trying to pull id: ', i);
-              res.notifications.pull(i);
-              res.save();
-              return;
-            }
-          }
-        }
+  
+  },
+  startNewGame: async (id, instance) => {
+    let success = false;
+    let playerX_fetched = false;
+    let playerO_fetched = false
+    let playerX_name = instance.playerOne.player;
+    let playerX_id = null;
+    let playerO_name = instance.playerTwo.player;
+    let playerO_id = null;
+    await User.findOne({ username: playerX_name })
+      .then(user => {
+        playerX_id = user._id;
+        console.log(playerX_id);
+        playerX_fetched = true;
+        
       })
-      .then(() => { return update })
-      .catch(error => console.log(error));
-    } catch (error) {
-      console.log('error from removeNotification: ');
-      console.log(error);
+      .catch(err => console.log(err));
+    await User.findOne({ username: playerO_name })
+      .then(user => {
+        playerO_id = user._id;
+        console.log(playerX_id);
+        playerO_fetched = true;
+      })
+      .catch(err => console.log(err));
+    console.log('playerX fetched: ', playerX_fetched);
+    console.log('playerO fetched: ', playerO_fetched);
+    if (playerX_fetched && playerO_fetched) {
+      
+      let insertData = {
+        instance: instance,
+        playerX_id: playerX_id,
+        playerO_id: playerO_id,
+        completed: false
+      }
+      
+      await Game.findOneAndUpdate({ id: id}, insertData, { upsert: true })
+        .then(() => {
+          console.log('game successfully saved to DB...');
+          success = true;
+        })
+        .catch(err => {
+          console.log(err);
+        });
+
     }
-    */
-  }
+    console.log('returning: ', success);
+    return success;
+  },
+
+  updateGame: async (id, instance) => {
+    await Game.findOneAndUpdate({ id: id }, { instance: instance })
+      .then(() => { return true; })
+      .catch(err => {
+        console.log(err);
+        return false;
+      })
+  },
+
+  endGame: async (id, instance, result) => {},
+  updateUsers: async (id, instance) => {},
+
 };

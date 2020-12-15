@@ -1,14 +1,20 @@
 <template>
-  <div>
-    <div v-if="!instance.start">
-        Waiting for game to start....
-    </div>
-    <div v-else>{{ instance }}</div>
-    <!--
-    <div class="container has-text-centered tictactoe">
-    <transition name="fade">
+  <div class="container has-text-centered tictactoe">
+    
+    
+      <p class="title">{{ `Game vs ${instance.playerOne.player === user.name ? instance.playerOne.player : instance.playerTwo.player}` }}</p>
       
-      
+      <div class="notification is-dark has-text-left">
+          
+          <div v-for="(entry, index) in gameNotifications" :key="index">
+            <p class="is-size-7 is-family-code">{{ entry }}</p>
+          </div>
+          
+        
+      </div>
+      <b-progress v-if="progress != 100" type="is-primary" size="is-medium" :value="progress ? progress: undefined"></b-progress>
+    
+    <div v-if="instance.started">
       <div class="columns is-mobile">
         <div class="column">
           <div>
@@ -38,9 +44,10 @@
           </div>
         </div>
       </div>
-    </transition>
+    </div>
+    
 
-    <div class="board">
+    <div v-if="instance.game" class="board">
       <div v-for="(n, i) in instance.game.board" :key="`row${i + 1}`" class="row">
         <div
           v-for="(n, j) in instance.game.board[i]"
@@ -62,17 +69,17 @@
       </div>
     </div>
     <transition name="fade">
-      <div class="container has-text-centered mt-4 mb-2 status-message">
+      <div v-if="instance.game" class="container has-text-centered mt-4 mb-2 status-message">
         <div>
-          <div class="pt-1" v-on:click="handleClick">
-            <p class="title" v-bind:class="{ 'has-text-primary': isEnded }">
-              <span v-if="isEnded">{{ result.outcome === 'draw' ? 'It\'s a draw' : `${result.outcome.mark} has won` }}</span>
+          <div class="pt-1">
+            <p class="title" v-bind:class="{ 'has-text-primary': instance.game.status.isEnded }">
+              <span v-if="instance.game.status.isEnded">{{ result.outcome === 'draw' ? 'It\'s a draw' : `${result.outcome.mark} has won` }}</span>
               <span v-else>{{ instance.game.currentPlayer.mark }}'s turn</span>
             </p>
-            <p ref="element" class="subtitle" v-bind:class="{ 'has-text-primary': isEnded }">
-              <span v-if="isEnded">Press here to play again</span>
+            <p ref="element" class="subtitle" v-bind:class="{ 'has-text-primary': instance.game.status.isEnded }">
+              <span v-if="instance.game.status.isEnded">Press here to play again</span>
               <span v-else-if="instance.game.history.length === 0">Let's go</span>
-              <span v-else-if="isLoading">{{ statusText }}</span>
+              
               <span v-else
                 >Last move:
                 {{ instance.game.history[instance.game.history.length - 1].player.mark }} to [{{
@@ -87,33 +94,40 @@
     </transition>
     <transition name="fade">
       <div class="container has-text-centered">
-        <button class="button is-info opt" v-on:click="resetGame">Reset</button>
+        
 
         <button class="button is-danger opt" v-on:click="closeGame">
           Close
         </button>
-        <button v-if="isEnded" class="button is-primary" @click="viewHistory">View History</button>
+        
       </div>
     </transition>
   </div>
-  -->
-  </div>
+  
+  
+  
+  
 </template>
 
 <script>
+import { mapGetters, mapActions } from 'vuex';
 
 
 export default {
   props: {
     instance: [Object]
   },
+  computed: {
+    ...mapGetters('user', ['user', 'gameNotifications', 'progress'])
+  },
   data() {
     return {
+      
       processingInput: false
     };
   },
   methods: {
-    
+    ...mapActions('user', ['makeMove']),
     isHighlighted(id) {
       return this.instance.game.status.winCondition.includes(
         id
@@ -134,12 +148,14 @@ export default {
     closeGame() {
       console.log('closegame...');
     },
-    confirmInput(id) {
-      console.log(id);
+    async confirmInput(move) {
+      console.log(move);
+      if (this.instance.game.status.isEnded) return;
       if (this.processingInput === true) return;
       else {
         this.processingInput = true;
-        if (!this.isEnded) console.log('input....');
+        this.makeMove(move);
+        await new Promise(resolve => setTimeout(resolve, 2000));
         this.processingInput = false;
       }
     },
@@ -232,6 +248,9 @@ export default {
 }
 .status-message {
   height: 5.25rem;
+}
+.is-family-code {
+  color: hsl(171, 100%, 41%)
 }
 </style>
 

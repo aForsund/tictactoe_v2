@@ -190,11 +190,11 @@ module.exports = class MultiplayerGame {
 
 		//returns false if game can continue...
 		else if (this.isDraw(this.getNextMark(), this.getMark(), this.status.turnCount, this.board)) {
-			this.clearStatusMessage();
+			
 			this.status.isEnded = true;
 			this.status.draw = true;
 		} else {
-			this.clearStatusMessage();
+			
 			//no action
 			console.log(`Game cannot be decided on turn ${this.status.turnCount}...`);
 		}
@@ -509,8 +509,8 @@ module.exports = class MultiplayerGame {
 	}
 
 	//confirm input from human player - use boolean value to prevent multiple inputs
-	async confirmInput(id) {
-		
+	confirmInput(id) {
+		let madeMove = false;
 		let field = this.getIndex(id);
 		
 
@@ -520,13 +520,13 @@ module.exports = class MultiplayerGame {
 			!this.spamControl
 		) {
 			this.spamControl = true;
-			this.updateBoard(field);
-			//await a new promise for thread to pause and update DOM..
-			await new Promise(resolve => setTimeout(resolve, 0));
+      this.updateBoard(field);
+      madeMove = true;
 			this.nextIteration();
-			this.computerMove();
+			
 		}
-		this.spamControl = false;
+    this.spamControl = false;
+    return [madeMove, field];
   }
 
   //Get index of gridReference (array of i and j) when value of field (selected by player) is found

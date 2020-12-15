@@ -115,7 +115,7 @@ export default {
     })
   },
   created() {
-    this.newGame();
+    if (!this.game) this.newGame();
     this.unwatchGameStatus = this.$watch("isEnded", newStatus => {
       console.log(`updating isEnded to ${newStatus}`);
       if (newStatus) this.endRound();

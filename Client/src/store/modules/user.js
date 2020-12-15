@@ -141,6 +141,9 @@ export const mutations = {
     },
     DEACTIVATE_INSTANCE(state) {
       state.instance = null;
+    },
+    MAKE_MOVE(state, move) {
+      state.socket.makeMove(state.user.name, state.activeInstanceId, move);
     }
   }
 export const actions = {
@@ -240,10 +243,14 @@ export const actions = {
     joinGame({ commit }, instance) {
       console.log('attempting to join multiplayer game...');
       commit('JOIN_MULTIPLAYER_GAME', instance);
-      commit('ACTIVATE_INSTANCE', instance);
+      commit('ACTIVATE_INSTANCE', instance.id);
     },
     activateInstance({ commit }, id) {
       commit('ACTIVATE_INSTANCE', id);
+    },
+    makeMove({ commit }, move) {
+      console.log('makeMove', move);
+      commit('MAKE_MOVE', move);
     }
 
 
@@ -284,7 +291,16 @@ export const getters = {
           else return state.socket.instances[index];
         } else return null;
       } else return null;
+    },
+    gameNotifications(state) {
+      let index = state.socket.gameNotifications.findIndex(index => index.id === state.activeInstanceId);
+      return state.socket.gameNotifications[index].notificationArr;
+    },
+    progress(state) {
+      let index = state.socket.gameNotifications.findIndex(index => index.id === state.activeInstanceId);
+      return state.socket.gameNotifications[index].progress;
     }
+
   }
 
   

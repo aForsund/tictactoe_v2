@@ -64,6 +64,11 @@ export default {
   },
   getChallenges(jwt, username) {
     apiClient.defaults.headers.common['Authorization'] = jwt;
-    return apiClient.get('api/user/challenges/' + username);
+    return apiClient.get('/api/user/challenges/' + username);
+  },
+  fetchInstance(jwt, id) {
+    apiClient.defaults.headers.common['Authorization'] = jwt;
+    return apiClient.get('/api/game/search/' +id);
   }
+
 };

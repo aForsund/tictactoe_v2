@@ -11,6 +11,7 @@ export default class MySocket {
         this.chat = [];
         this.users = [];
         this.notifications = [];
+        this.gameNotifications = [];
         this.instances = [];
         this.initSocket();
         this.connect();
@@ -35,10 +36,6 @@ export default class MySocket {
 
         })
 
-        this.socket.on('multiplayerGame', ({ gameData }) => {
-            console.log(gameData);
-        });
-
         this.socket.on('updateNotifications', async () => {
             let response = null;
             
@@ -51,7 +48,7 @@ export default class MySocket {
             }
             
             if (response) {
-              this.notifications.slice(this.notifications.length);
+              this.notifications.splice(this.notifications.length);
               this.notifications = response.data;
             }
         });
@@ -70,16 +67,8 @@ export default class MySocket {
 
         this.socket.on('notification', (payload) => console.log(payload));
 
-        this.socket.on('challengeAccepted', challenge => {
-          console.log('challenge was accepted: ', challenge);
-          let index = this.notifications.findIndex(index => challenge.id === index.id);
-          console.log(index);
-          this.notifications[index].accepted = true;
-          console.log(this.notifications[0]);
-        });
-
         this.socket.on('updateGameInstance', instance => {
-          //Use slice to make Vue.js update changes automatically...
+          //Use splice to make Vue.js update changes automatically...
           let index = this.instances.findIndex(index => index.id === instance.id);
           if (index === -1) {
             index = this.instances.length;
@@ -92,7 +81,50 @@ export default class MySocket {
           }
         });
 
-        
+        this.socket.on('gameNotification', (id, progress, notification) => {
+          
+          console.log('gameNotification received: ', id, progress, notification);
+          let index = this.gameNotifications.findIndex(index => index.id === id);
+          console.log('index', index);
+          if (index === -1) {
+            console.log('gameNotification - Index not found - creating new notification object for id: ', id);
+            index = this.gameNotifications.length;
+            this.gameNotifications.push(
+              {
+                id: id,
+                progress: progress,
+                notificationArr: []
+              }
+            );
+          }
+          console.log(this.gameNotifications[index].notificationArr);
+          this.gameNotifications[index].progress = progress;
+          let notificationIndex = this.gameNotifications[index].notificationArr.length;
+          this.gameNotifications[index].notificationArr.push();
+          this.gameNotifications[index].notificationArr.splice(notificationIndex, 1, notification);
+        });
+
+        this.socket.on('fetchInstance', async id => {
+          console.log(`I'm told to fetch instance id ${id}`);
+          let response = null;
+          try {
+            response = await API_interface.fetchInstance(this.user.token, id);
+            console.log(response);
+          }
+          catch (err) {
+            console.log(err);
+          }
+          if (response) {
+            let index = this.instances.findIndex(index => index.id === response.data.id);
+            if (index === -1) {
+              index = this.instances.length;
+              this.instances.push();
+              this.instances.splice(index, 1, response.data.instance);
+            } else {
+              this.instances.splice(index, 1, response.data.instance);
+            }
+          }
+        });
     }
 
     connect() {
@@ -134,8 +166,10 @@ export default class MySocket {
       this.socket.emit('removeNotification', name, notification);
     }
 
-    selectField(field) {
-        this.socket.emit('selectField', field);
+    makeMove(name, id, move) {
+        console.log('making move...')
+        console.log(this.user.username, id, move);
+        this.socket.emit('makeMove', name, id, move);
     }
 
     playAgain() {
