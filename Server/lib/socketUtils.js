@@ -74,7 +74,8 @@ module.exports = {
     return success;
   
   },
-  startNewGame: async (id, instance) => {
+
+  startNewGame: async (instance) => {
     let success = false;
     let playerX_fetched = false;
     let playerO_fetched = false
@@ -100,15 +101,22 @@ module.exports = {
     console.log('playerX fetched: ', playerX_fetched);
     console.log('playerO fetched: ', playerO_fetched);
     if (playerX_fetched && playerO_fetched) {
-      
+    
+      //id gets inserted by findOneAndUpdate method with upsert flag - check this!!
       let insertData = {
-        instance: instance,
+        id: instance.id,
+        completed: instance.completed,
+        started: instance.started,
+        lastUpdate: Date.now(),
+        playerOne: instance.playerOne,
+        playerTwo: instance.playerTwo,
+        game: instance.game,
+        progress: instance.progress,
         playerX_id: playerX_id,
         playerO_id: playerO_id,
-        completed: false
       }
-      
-      await Game.findOneAndUpdate({ id: id}, insertData, { upsert: true })
+      //Update database
+      await Game.findOneAndUpdate({ id: id}, JSON.parse(JSON.stringify(insertData)), { upsert: true })
         .then(() => {
           console.log('game successfully saved to DB...');
           success = true;
@@ -122,16 +130,46 @@ module.exports = {
     return success;
   },
 
-  updateGame: async (id, instance) => {
-    await Game.findOneAndUpdate({ id: id }, { instance: instance })
-      .then(() => { return true; })
+  updateGame: async (instance) => {
+
+    let updated = false;
+    instance.lastUpdate = Date.now();
+
+    await Game.findOneAndUpdate({ id: instance.id }, JSON.parse(JSON.stringify(instance)))
+      .then(() => { 
+        updated = true; })
       .catch(err => {
         console.log(err);
-        return false;
+      });
+    return updated;
+  },
+
+  findGame: async (id) => {
+    let response = false;
+    await Game.findOne({ id: id})
+      .then(res => {
+        console.log('res from findGame: ', res);
+        if (res) response = true;
       })
+      .catch(err => {
+        console.log(err);
+
+      });
+    return response;
+  },
+
+  getActiveGames: async () => {
+    let response = null;
+    await Game.find({ $and: [{ started: true }, { completed: false }]})
+      .then(res => {
+        response = res
+      })
+      .catch(err => console.log(err));
+    return response;
   },
 
   endGame: async (id, instance, result) => {},
   updateUsers: async (id, instance) => {},
-
+  
+ 
 };

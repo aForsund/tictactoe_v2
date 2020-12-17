@@ -293,6 +293,7 @@ export const getters = {
       } else return null;
     },
     gameNotifications(state) {
+      if (!state.socket.gameNotifications) return null;
       let index = state.socket.gameNotifications.findIndex(index => index.id === state.activeInstanceId);
       return state.socket.gameNotifications[index].notificationArr;
     },

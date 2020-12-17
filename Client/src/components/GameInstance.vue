@@ -31,9 +31,9 @@ export default {
     ...mapActions('user', ['dismiss', 'joinGame', 'activateInstance']),
     clickInstance() {
       
-      if (!this.instance.started) this.joinGame(this.instance);
-      else this.activateInstance(this.instance.id);
-      
+      //if (!this.instance.started) this.joinGame(this.instance);
+      //else this.activateInstance(this.instance.id);
+      this.joinGame(this.instance)
       
     },
   }

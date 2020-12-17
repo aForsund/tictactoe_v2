@@ -5,10 +5,11 @@
       <p class="title">{{ `Game vs ${instance.playerOne.player === user.name ? instance.playerOne.player : instance.playerTwo.player}` }}</p>
       
       <div class="notification is-dark has-text-left">
-          
-          <div v-for="(entry, index) in gameNotifications" :key="index">
-            <p class="is-size-7 is-family-code">{{ entry }}</p>
-          </div>
+        <div v-if="gameNotifications">
+        <div v-for="(entry, index) in gameNotifications" :key="index">
+          <p class="is-size-7 is-family-code">{{ entry }}</p>
+        </div>
+        </div>
           
         
       </div>
@@ -134,6 +135,7 @@ export default {
       );
     },
     isLastMove(id) {
+      console.log(this.instance);
       if (this.instance.game.currentMove) {
         let [i, j] = this.instance.game.currentMove;
         return this.instance.game.gridReference[i][j] === id;

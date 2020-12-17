@@ -5,12 +5,18 @@ const { v4: uuidv4 } = require('uuid');
 
 const MultiplayerGame = require ('../lib/game');
 const Timer = require('../lib/timer.js');
-const { watch } = require('../models/game');
+
 const botName = 'Chatbot';
+
+//set timer variables here
+const roundTimer = 30000;
+const buffer = 2000;
+////set timer variables here
 
 const users = [];
 const chatUsers = [];
 const multiplayerInstances = [];
+const timers = [];
 
 module.exports = (socket, io) => {
         
@@ -22,7 +28,8 @@ module.exports = (socket, io) => {
             socket.emit('hello', `hello ${username}, from socket.io`);
             users.push({ id: socket.id, username: username });
             io.emit('updateUsers', users);
-            //checkActiveInstances(username);
+            checkActiveInstances(username);
+
         });
 
         socket.on('joinChat', ({username }) => {
@@ -137,15 +144,32 @@ module.exports = (socket, io) => {
           }
         });
         
-        socket.on('acceptChallenge', challenge => {
-          console.log(`${socket.id} accepted challenge..`);
-          console.log('challenge: ');
-          console.log(challenge);
+        socket.on('acceptChallenge', async challenge => {
+
           let index = users.findIndex(index => challenge.challenger === index.username);
+
           if (index === -1) {
             handleErrors('notification', 'Challenger is not online...');
             return;
           }
+
+          let gameIndex = multiplayerInstances.findIndex(index => index.id === challenge.id);
+
+          if (gameIndex !== -1) {
+            handleErrors('notification', 'game is already initialized');
+            return;
+          }
+
+          //check if game is already initialized
+          let success = await socketUtils.findGame(challenge.id);
+          console.log('acceptChallenge DB call response:', success);
+
+          if (success) {
+            handleErrors('notification', 'game is already initialized..');
+            return;
+          }
+
+          //Create new instance object          
           let instance = {
             id: challenge.id, 
             playerOne: {
@@ -159,31 +183,53 @@ module.exports = (socket, io) => {
               timeouts: 0
             },
             started: false,
-            date: null,
-            statusText: [],
-            progress: undefined
+            completed: false,
+            lastUpdate: null,
+            game: null,
+            progress: undefined,
+            playerO_id: null,
+            playerX_id: null
           }
           
           multiplayerInstances.push(instance);
 
           socket.emit('updateGameInstance', instance);
+          
+          //Broadcast update to challenger
           socket.broadcast.to(users[index].id).emit('updateGameInstance', instance);
-          
-
-          
         });
 
         socket.on('joinGame', async (user, id) => {
-          let index = multiplayerInstances.findIndex(index => id === index.id);
-          if (index === -1) {
-            handleErrors('notification', 'Instance not found...');
+          
+          //check if game is already initialized - joinGame should be avoided on client side if user has already joined the game..
+          let success = await socketUtils.findGame(id);
+          if (success) {
+            handleErrors('notification', 'game is already started.. forcing update from DB..');
+            socket.join(id, () => {
+              socket.emit('fetchInstance', id);
+            });
             return;
           }
+
+          //check if game exists in instance array..
+          let index = multiplayerInstances.findIndex(index => id === index.id);
+          if (index === -1) {
+            handleErrors('notification', 'Instance not found in instance array... forcing array update');
+            await getActiveInstances();
+            
+            //Check one more time..
+            index = multiplayerInstances.findIndex(index => id === index.id);
+            if(index === -1) {
+              handleErrors('notification', 'something is wrong with getActiveInstances function....')
+              return;
+            }
+          }
+
+          //User joins or creates a new game instance in instance array..
           let instance = multiplayerInstances[index];
           if (user === instance.playerOne.player) {
             instance.playerOne.joined = true;
             instance.playerOne.id = socket.id;
-
           } else if (user === instance.playerTwo.player) {
             instance.playerTwo.joined = true;
             instance.playerTwo.id = socket.id
@@ -191,12 +237,16 @@ module.exports = (socket, io) => {
             handleErrors('notification', 'Something went wrong with starting mulitplayer instance...');
             return;
           }
+
+          //User joins instance room
           socket.join(id, async () => {
             if (instance.playerOne.joined && instance.playerTwo.joined) {
               instance.progress = 10;
-              io.to(id).emit('gameNotification', id, instance.progress, `All players have successfully joined instance`);
+              io.to(id).emit('gameProgress', id, instance.progress);
+              io.to(id).emit('gameNotification', id, false, `All players have successfully joined instance`);
               instance.progress = 20;
-              io.to(id).emit('gameNotification', id, instance.progress, 'Creating new game object...');
+              io.to(id).emit('gameProgress', id, instance.progress);
+              io.to(id).emit('gameNotification', id, false, 'Creating new game object...');
               
               //Updating instance object
               let gameoptions = {
@@ -216,18 +266,28 @@ module.exports = (socket, io) => {
               let game = new MultiplayerGame(gameoptions);
               instance.game = game;
               instance.progress = 30;
-              io.to(id).emit('gameNotification', id, instance.progress, 'Updating DB...');
-              
+              io.to(id).emit('gameProgress', id, instance.progress);
+              io.to(id).emit('gameNotification', id, true, 'Creating new game object... DONE');
+              io.to(id).emit('gameNotification', id, false, 'Updating DB...');
               
               instance.progress = 100;
               instance.started = true;
-              console.log('trying to initiate DB...')
-              let success = await socketUtils.startNewGame(id, instance);
-              console.log(success);
+
+              let success = await socketUtils.startNewGame(instance);
               if (success) {
-                io.to(id).emit('gameNotification', id, instance.progress, 'Starting game...');
+                
+
+                io.to(id).emit('gameProgress', id, instance.progress);
+                io.to(id).emit('gameNotification', id, true, 'Updating DB... DONE');
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                io.to(id).emit('gameCountdown', id, 5000);
+                await new Promise(resolve => setTimeout(resolve, 5000));
                 io.to(id).emit('fetchInstance', id);
+                io.to(id).emit('gameCountdown', id, roundTimer);
                 watchGame(instance);
+              }
+              else {
+                handleErrors('notification', 'Error starting game...');
               }
             }
 
@@ -251,36 +311,55 @@ module.exports = (socket, io) => {
           let index = multiplayerInstances.findIndex(index => id === index.id);
           if (index === -1) {
             console.log('instance not found...');
-            return;
+            await getActiveInstances();
+            index = multiplayerInstances.findIndex(index => id === index.id);
+            if(index === -1) {
+              console.log('something is wrong with getActiveInstances function....')
+              console.log(multiplayerInstances);
+              console.log(id);
+              return;
+            }
           }
           let instance = multiplayerInstances[index];
-          if (instance.game.status.isEnded) decideOutcome(instance);
+          io.to(id).emit('notification', multiplayerInstances);
+          if (!instance.started) {
+            handleErrors('notification', 'game has not started yet');
+            return;
+          }
+          if (instance.game.status.isEnded) {
+            decideOutcome(instance);
+            return;
+          }
           if (user === instance.playerOne.player && instance.game.playerOne.turn) {
             //user is player one and player one has next turn...
             [moveCommited, field] = instance.game.confirmInput(move);
-            
           }
           else if (user === instance.playerTwo.player && instance.game.playerTwo.turn) {
             //user is player two and player two has next turn...
             [moveCommited, field] = instance.game.confirmInput(move);
-            
           }
           if (moveCommited) {
-            instance.timer.cancel();
-            console.log(field);
-            io.to(id).emit('stopTimer', id);
-            io.to(id).emit('gameNotification', id, instance.progress, `${user} selected ${move}`);
+            cancelWatcher(instance);
+            io.to(id).emit('gameStopCountdown', id);
+            io.to(id).emit('gameNotification', id, false, `${user} selected ${move}`);
+            io.to(id).emit('gameNotification', id, false, 'updating DB...');
+            
+            let success = await socketUtils.updateGame(instance);
+            
+            if (success) {
+              io.to(id).emit('gameNotification', id, true, 'updating DB... DONE');
+              io.to(id).emit('fetchInstance', id);
+              
+            } else {
+              handleErrors('notification', 'error updating DB...');
+              return;
+            }
+
             if (instance.game.status.isEnded) {
               decideOutcome(instance);
             } else {
-              io.to(id).emit('gameNotification', id, instance.progress, 'updating DB...');
-              let success = socketUtils.updateGame(id, instance);
-              if (success) {
-                io.to(id).emit('gameNotification', id, instance.progress, 'successfully updated DB');
-                io.to(id).emit('fetchInstance', id);
-                watchGame(instance);
-              }
-              else handleErrors('notification', 'error updating DB...');
+              io.to(id).emit('gameCountdown', id, roundTimer);  
+              watchGame(instance);
             }
           }
         });
@@ -330,14 +409,30 @@ module.exports = (socket, io) => {
           multiplayerInstances.splice(index, 1);
         }
 
+        //Remove user from all active instances user was part of..
         const handleDisconnect = user => {
           
-          let activeInstances = multiplayerInstances.filter(instance => instance.playerOne.player === user.username || instance.playerTwo.player);
+          let activeInstances = multiplayerInstances.filter(entry => entry.playerOne.player === user.username || entry.playerTwo.player === user.username);
           
           //Loop through all active instances and update...
-          console.log('active instances: ');
-          console.log(activeInstances);
+          for (let i = 0; i < activeInstances.length; i++) {
+            io.to(activeInstances[i].id).emit('gameNotification', activeInstances[i].id, null, `${user.username} has disconnected..` );
+          }  
+          
         }
+
+        //Send details of all games user is part of upon connection
+        const checkActiveInstances = username => {
+        
+          let activeInstances = multiplayerInstances.filter(entry => entry.playerOne.player === username || entry.playerTwo.player === username);
+          
+          //Loop through all active instances and update...
+          for (let i = 0; i < activeInstances.length; i++) {
+            socket.join(activeInstances[i].id);
+            socket.emit('fetchInstance', activeInstances[i].id);
+            io.to(activeInstances[i].id).emit('gameNotification', activeInstances[i].id, activeInstances[i].progress, `${username} has joined..` );
+          }
+        }  
 
         const leaveGame = (user, instanceId) => {
 
@@ -345,34 +440,85 @@ module.exports = (socket, io) => {
 
         //Create a new timer for each turn and watch for timeout - call decideOutcome function on timeout
         const watchGame = async (instance) => {
-          if (instance.timer) instance.timer.cancel();
-          //Set timer here (include delay for client side timer):
-          let time = 3000;
-          io.to(instance.id).emit('timerUpdate', time - 2000);
-          instance.timer = new Timer(time);
           
-          
-          
+          let index = timers.findIndex(index => index.id === instance.id);
+          if (index !== -1) {
+            //Timer exists already - cancel the timer
+            timers[index].timer.cancel();
+            //Then remove the timer
+            timers.splice(index, 1)
+          }
 
+          let newTimerObject = {
+            id: instance.id,
+            timer: new Timer(roundTimer + buffer)
+          }
           
-          await instance.timer.promise;
-          console.log('timer finished...')
-          console.log(instance.timer);
-          if (instance.timer.timeout) {
+          //Store the timer object in array for later access if input is provided before timer depletes.
+          timers.push(newTimerObject);
+          
+          //Await timer depletion
+          await newTimerObject.timer;
+
+          //End game if timer was depleted
+          if (newTimerObject.timer.timeout) {
             decideOutcome(instance, true);
           }
         }
 
+        //Cancel timer started in watchGame function on player input
+        const cancelWatcher = instance => {
+          let index = timers.findIndex(index => index.id === instance.id);
+          if (index !== -1) {
+            //Timer exists already - cancel the timer
+            timers[index].timer.cancel();
+            //Then remove the timer from timers array
+            timers.splice(index, 1)
+          }
+        }
+
+        //Evaluate outcome of game object
         const decideOutcome = (instance, timeout = false) => {
+
           if (timeout) {
             console.log('timeout...');
             io.to(instance.id).emit('notification', 'end game on timeout...');
           }
+          io.to(instance.id).emit('notification', 'decideOutcome function is not implemented yet...');
         }
 
-        const addDate = instance => {
-          instance.date = new Date();
+        const getActiveInstances = async () => {
+          console.log('getActiveInstances.....')
+          let activeGames = await socketUtils.getActiveGames();
+          
+
+          let insertArray = activeGames.filter(entry => {
+            return !multiplayerInstances.some(i => i.id === entry.id)
+          });
+
+          //loop through insertArray and start each individual game instance...
+          insertArray.forEach(entry => startGame(entry));
+          
+
+          multiplayerInstances.push(...insertArray);
+
+          return true;
+
+
         }
 
+        //Function to boot new game as instances fetched from DB are converted to JSON objects 
+        const startGame = (instance) => {
+            
+          //get required parameters       
+          let playerOne = instance.playerOne;
+          let playerTwo = instance.playerTwo;
+          let board = instance.game.board;
+          let turnCount = instance.game.status.turnCount;
+          
+          //start new game with obtained parameters
+          instance.game = new MultiplayerGame(playerOne, playerTwo, board, turnCount);
+          
+        }
         
 }
