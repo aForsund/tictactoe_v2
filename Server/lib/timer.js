@@ -1,5 +1,6 @@
 module.exports = class Timer {
-  constructor(time) {
+  constructor(id, time) {
+    this.id = id;
     this.time = time;
     this.timer = null;
     this.promise = new Promise((resolve, reject) => {
@@ -13,16 +14,13 @@ module.exports = class Timer {
     
     this.timeout = false;
     this.start();
-}
-
-
-  
-
+  }
   start() {
     this.timer = setTimeout(() => {
-      this.timeout = true;
+      
       this.resolve();
-     }, this.time);
+      this.timeout = true;
+    }, this.time);
   }
 }
       

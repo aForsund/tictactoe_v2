@@ -5,10 +5,6 @@ const gameSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  instance: {
-    type: Object,
-    required: true
-  },
   playerX_id: {
     type: String,
     required: true
@@ -21,9 +17,33 @@ const gameSchema = new mongoose.Schema({
     type: Boolean,
     required: true
   },
-  outcome: {
-    type: String
-  }
+  started: {
+    type: Boolean,
+    required: true
+  },
+  lastUpdate: {
+    type: Number,
+    required: true
+  },
+  playerOne: {
+    type: Object,
+    required: true
+  },
+  playerTwo: {
+    type: Object,
+    required: true
+  },
+  game: {
+    type: Object,
+    required: true
+  },
+  progress: {
+    type: Number,
+    required: true
+  },
+    
+  
+
 });
 
 module.exports = mongoose.model('Game', gameSchema);

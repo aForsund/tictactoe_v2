@@ -1,6 +1,6 @@
 <template>
   <div>
-      <button class="button is-primary" @click="clickInstance()">
+      <button class="button is-primary" :class="{ 'is-danger': instance.id === activeInstance ? activeInstance.id : null }" @click="clickInstance">
         <span v-if="instance.started">
           
           {{`
@@ -30,10 +30,15 @@ export default {
   methods: {
     ...mapActions('user', ['dismiss', 'joinGame', 'activateInstance']),
     clickInstance() {
-      
-      //if (!this.instance.started) this.joinGame(this.instance);
-      //else this.activateInstance(this.instance.id);
-      this.joinGame(this.instance)
+      console.log('clickInstance');
+      console.log(this.instance);
+      if (!this.instance.started) {
+        console.log('joingame')
+        this.joinGame(this.instance);
+      }else {
+        console.log('activateInstance', this.instance.id);
+        this.activateInstance(this.instance);
+      }
       
     },
   }

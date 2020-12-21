@@ -1,18 +1,27 @@
 import io from 'socket.io-client';
 import API_interface from "@/services/API-interface.js";
+import Vue from 'vue';
+import DataStorage from '@/services/dataStorage.js';
 
 //Change url for production
 const SERVER_URL = 'http://localhost:3000';
 
 export default class MySocket {
     constructor(user) {
+        this.storage = new DataStorage();
         this.user = user;
+
         this.socket = io(SERVER_URL);
         this.chat = [];
         this.users = [];
         this.notifications = [];
         this.gameNotifications = [];
         this.instances = [];
+
+        //splice promises for splice worker methods
+        //this.instancePromise = null;
+        //this.notificationsPromise = null;
+
         this.initSocket();
         this.connect();
         
@@ -48,16 +57,14 @@ export default class MySocket {
             }
             
             if (response) {
-              this.notifications.splice(this.notifications.length);
-              this.notifications = response.data;
+              this.notifications.splice(0, this.notifications.length, ...response.data);
+              //this.notifications = response.data;
             }
         });
 
-        this.socket.on('updateBoard', ({ gameData }) => {
-            console.log(gameData);
-        });
+       
 
-        this.socket.on('updateUsers', users => {
+        this.socket.on('updateUsers', async users => {
             this.users = users;
         });
 
@@ -65,26 +72,43 @@ export default class MySocket {
 
         this.socket.on('refreshSockets', () => this.connect());
 
-        this.socket.on('notification', (payload) => console.log(payload));
+        //Console.log payload - add functionality for pop up notifications later...
+        this.socket.on('notification', payload => console.log(payload));
 
-        this.socket.on('updateGameInstance', instance => {
-          //Use splice to make Vue.js update changes automatically...
-          let index = this.instances.findIndex(index => index.id === instance.id);
+        //Update instances array with splice to make Vue.js update changes automatically...
+        this.socket.on('updateGameInstance', async instance => {
+          console.log(' *** *** UPDATE GAME INSTANCE ****')
+          console.log('*INSTANCE*');
+          console.log(instance);
+          console.log('*THIS.INSTANCES*');
+          console.log(this.instances);
+          let index = this.instances.findIndex(index => {
+            index.id === instance.id
+          });
           if (index === -1) {
             index = this.instances.length;
             this.instances.push(instance);
-            this.instances.splice(index, 1, instance);
-
           }
-          else {
-            this.instances.splice(index, 1, instance);
-          }
+          Vue.set(this.instances, index, instance);
+          //this.spliceInstance(index, instance);
         });
 
-        this.socket.on('gameNotification', (id, progress, notification) => {
-          
-          console.log('gameNotification received: ', id, progress, notification);
-          let index = this.gameNotifications.findIndex(index => index.id === id);
+        //Add game notifications to gameNotifications array - overwrite true overwrites last entry
+        this.socket.on('gameNotification', async (id, overwrite, notification) => {
+          let index = null;
+          console.log('gameNotification received: ', id, overwrite, notification);
+          console.log(this.gameNotifications);
+          if (this.gameNotifications.length === 0) index = -1;
+          else {
+            
+            index = this.gameNotifications.findIndex(async index => {
+              while (!index.id) {
+                await new Promise(resolve => setTimeout(resolve, 0));
+                console.log('waiting in findIndex function...');
+              }
+              index.id === id
+            });
+          }
           console.log('index', index);
           if (index === -1) {
             console.log('gameNotification - Index not found - creating new notification object for id: ', id);
@@ -92,18 +116,23 @@ export default class MySocket {
             this.gameNotifications.push(
               {
                 id: id,
-                progress: progress,
+                progress: undefined,
+                countdown: 0,
                 notificationArr: []
               }
             );
           }
           console.log(this.gameNotifications[index].notificationArr);
-          this.gameNotifications[index].progress = progress;
+          
           let notificationIndex = this.gameNotifications[index].notificationArr.length;
-          this.gameNotifications[index].notificationArr.push();
-          this.gameNotifications[index].notificationArr.splice(notificationIndex, 1, notification);
+          if (overwrite) this.gameNotifications[index].notificationArr.splice(notificationIndex -1, 1, notification);
+          else {
+            this.gameNotifications[index].notificationArr.push();
+            this.gameNotifications[index].notificationArr.splice(notificationIndex, 1, notification);
+          }
         });
 
+        //Fetch instance from DB and update instance array with splice
         this.socket.on('fetchInstance', async id => {
           console.log(`I'm told to fetch instance id ${id}`);
           let response = null;
@@ -115,15 +144,88 @@ export default class MySocket {
             console.log(err);
           }
           if (response) {
-            let index = this.instances.findIndex(index => index.id === response.data.id);
+            console.log(this.instances);
+            let index = null;
+            if (this.instances.length === 0) index = -1;
+            
+            else {
+              
+              index = this.instances.findIndex(index => {
+                
+                index.id === response.data.id;
+              });
+            }
             if (index === -1) {
               index = this.instances.length;
               this.instances.push();
-              this.instances.splice(index, 1, response.data.instance);
-            } else {
-              this.instances.splice(index, 1, response.data.instance);
             }
+            //this.instances.splice(index, 1, response.data);
+            //this.spliceInstance(index, response.data);
+            Vue.set(this.instances, index, response.data);
           }
+        });
+
+        this.socket.on('gameProgress', async (id, progress) => {
+          let index = null;
+          if (this.gameNotifications.length === 0) index = -1;
+          else {
+            
+            index = this.gameNotifications.findIndex(async index => {
+              while (!index.id) {
+                await new Promise(resolve => setTimeout(resolve, 0));
+                console.log('waiting in findIndex function...');
+              }
+              index.id === id;
+            });
+          }
+          if (index === -1) {
+            console.log('gameProgress - Index not found - creating new notification object for id: ', id);
+            index = this.gameNotifications.length;
+            this.gameNotifications.push(
+              {
+                id: id,
+                progress: undefined,
+                countdown: 0,
+                notificationArr: []
+              }
+            );
+          }
+          
+          this.gameNotifications[index].progress = progress;
+          this.gameNotifications.splice(index, 1, this.gameNotifications[index]);
+          //this.spliceNotification(index, this.gameNotifications[index]);
+        });
+
+        this.socket.on('gameCountdown', (id, time) => {
+          let index = null;
+          if (this.gameNotifications.length === 0) index = -1;
+          else index = this.gameNotifications.findIndex(async index => {
+            while (!index.id) {
+              await new Promise(resolve => setTimeout(resolve, 0));
+              console.log('waiting in findIndex function...');
+            }
+            index.id === id
+          });
+          if (index === -1) {
+            console.log('gameCountdown - Index not found - creating new notification object for id: ', id);
+            index = this.gameNotifications.length;
+            this.gameNotifications.push(
+              {
+                id: id,
+                progress: undefined,
+                countdown: 0,
+                notificationArr: []
+              }
+            );
+          }
+          this.gameNotifications[index].countdown = 0;
+          this.gameNotifications[index].countdown = time;
+          this.gameNotifications.splice(index, 1, this.gameNotifications[index]);
+          //this.spliceNotification(index, this.gameNotifications[index]);
+        });
+
+        this.socket.on('gameStopCountdown', id => {
+          console.log(`I'm told to stop countdown timer...`, id);
         });
     }
 
@@ -192,4 +294,25 @@ export default class MySocket {
         this.socket.close();
         //this.socket.close();
     }
+
+    //Splice methods to avoid undefined values in arrays while splice is operating across multiple functions
+    /*
+    async spliceInstance(index, data) {
+      this.instancePromise = new Promise(resolve => {
+        this.instances.splice(index, 1, data);
+        resolve;
+      });
+    }
+    */
+    /*
+    async spliceNotification(index, data) {
+      
+      if (this.notificationPromise) await this.notificationPromise;
+      
+      this.notificationPromise = new Promise(resolve => {
+        this.gameNotifications.splice(index, 1, data);
+        resolve;
+      }).then(this.notificationPromise = null);
+    }
+    */
 }

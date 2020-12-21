@@ -9,7 +9,7 @@ const Timer = require('../lib/timer.js');
 const botName = 'Chatbot';
 
 //set timer variables here
-const roundTimer = 30000;
+const roundTimer = 10000;
 const buffer = 2000;
 ////set timer variables here
 
@@ -241,6 +241,7 @@ module.exports = (socket, io) => {
           //User joins instance room
           socket.join(id, async () => {
             if (instance.playerOne.joined && instance.playerTwo.joined) {
+              socket.emit('updateGameInstance', instance);
               instance.progress = 10;
               io.to(id).emit('gameProgress', id, instance.progress);
               io.to(id).emit('gameNotification', id, false, `All players have successfully joined instance`);
@@ -294,6 +295,7 @@ module.exports = (socket, io) => {
             else {
               let index = users.findIndex(index => index.username === instance.playerOne.joined ? instance.playerTwo.player : instance.playerOne.player);
               let user = users[index];
+              socket.emit('updateGameInstance', instance);
               socket.broadcast.to(user.id).emit('updateGameInstance', instance);
               socket.emit('gameNotification', id, null, `You have successfully joined game instance:${id}`);
               socket.emit('gameNotification', id, null, 'Waiting for other player...');
@@ -444,24 +446,26 @@ module.exports = (socket, io) => {
           let index = timers.findIndex(index => index.id === instance.id);
           if (index !== -1) {
             //Timer exists already - cancel the timer
-            timers[index].timer.cancel();
+            io.to(instance.id).emit('notification', 'cancelling existing timer upon creating a new...');
+            timers[index].cancel();
             //Then remove the timer
             timers.splice(index, 1)
           }
 
-          let newTimerObject = {
-            id: instance.id,
-            timer: new Timer(roundTimer + buffer)
-          }
+          io.to(instance.id).emit('notification', 'creating new timer...');
+
+          let timer = new Timer(instance.id, roundTimer + buffer);
+          
           
           //Store the timer object in array for later access if input is provided before timer depletes.
-          timers.push(newTimerObject);
+          timers.push(timer);
           
           //Await timer depletion
-          await newTimerObject.timer;
-
+          await timer.promise;
+          console.log(`timer ended with timeout = ${timer.timeout}`);
+          console.log(timer);
           //End game if timer was depleted
-          if (newTimerObject.timer.timeout) {
+          if (timer.timeout) {
             decideOutcome(instance, true);
           }
         }
@@ -470,21 +474,37 @@ module.exports = (socket, io) => {
         const cancelWatcher = instance => {
           let index = timers.findIndex(index => index.id === instance.id);
           if (index !== -1) {
+            io.to(instance.id).emit('notification', 'cancelling timer...');
             //Timer exists already - cancel the timer
-            timers[index].timer.cancel();
+            timers[index].cancel();
             //Then remove the timer from timers array
             timers.splice(index, 1)
           }
         }
 
-        //Evaluate outcome of game object
+        //Evaluate outcome of game object and call further actions
         const decideOutcome = (instance, timeout = false) => {
-
+          let endGame = false;
+          // 1 -Calculate win or draw
           if (timeout) {
+            endGame = true;
             console.log('timeout...');
+            console.log('playerX_id: ', instance.playerX_id);
+            console.log('playerO_id: ', instance.playerO_id);
             io.to(instance.id).emit('notification', 'end game on timeout...');
           }
           io.to(instance.id).emit('notification', 'decideOutcome function is not implemented yet...');
+
+          
+
+          // 2 - Update game instance and save to DB...
+
+          // 3 - Update users
+          
+          // 4 - emit updates.. completed instances should not be requestable from client side to save calculations on server
+
+          // 5 - delete instance from multiplayerInstances array
+
         }
 
         const getActiveInstances = async () => {

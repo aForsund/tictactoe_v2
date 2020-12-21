@@ -3,6 +3,7 @@ import MySocket from '@/services/mysocket.js'
 import LoginModal from "@/components/LoginModal.vue";
 import MultiplayerModal from "@/components/MultiplayerModal.vue"
 import { ModalProgrammatic as Modal } from 'buefy';
+import Vue from 'vue';
 
 
 
@@ -138,12 +139,44 @@ export const mutations = {
     },
     ACTIVATE_INSTANCE(state, id) {
       state.activeInstanceId = id;
+      let instanceIndex = state.socket.instances.findIndex(async index => {
+        while (!index.id) {
+          await new Promise(resolve => setTimeout(resolve, 0));
+          console.log('waiting in findIndex function...');
+        }
+        index.id === id
+      });
+      Vue.set(state.socket.instances, 1, state.socket.instances[instanceIndex]);
+      //state.socket.spliceInstance(instanceIndex, 1, state.socket.instances[instanceIndex]);
+      let notificationIndex = state.socket.gameNotifications.findIndex(async index => {
+        while (!index.id) {
+          await new Promise(resolve => setTimeout(resolve, 0));
+          console.log('waiting in findIndex function...');
+        }
+        index.id === id
+      });
+      Vue.set(state.socket.gameNotifications, notificationIndex, state.socket.gameNotifications[notificationIndex]);
+      //state.socket.gameNotifications.splice(notificationIndex, 1, state.socket.gameNotifications[notificationIndex]);
+      //state.socket.spliceNotification(notificationIndex, state.socket.gameNotifications[notificationIndex]);
     },
     DEACTIVATE_INSTANCE(state) {
       state.instance = null;
     },
     MAKE_MOVE(state, move) {
       state.socket.makeMove(state.user.name, state.activeInstanceId, move);
+    },
+    CLEAR_COUNTDOWN(state) {
+      let index = state.socket.gameNotifications.findIndex(async index => {
+        while (!index.id) {
+          await new Promise(resolve => setTimeout(resolve, 0));
+          console.log('waiting in findIndex function...');
+        }
+        index.id === state.activeInstanceId
+      });
+      state.socket.gameNotifications[index].countdown = 0;
+      //state.socket.gameNotifications.splice(index, 1, state.socket.gameNotifications[index]);
+      //state.socket.spliceNotification(index, state.socket.gameNotifications[index]);
+      Vue.set(state.socket.gameNotifications, index, state.socket.gameNotifications[index]);
     }
   }
 export const actions = {
@@ -245,17 +278,16 @@ export const actions = {
       commit('JOIN_MULTIPLAYER_GAME', instance);
       commit('ACTIVATE_INSTANCE', instance.id);
     },
-    activateInstance({ commit }, id) {
-      commit('ACTIVATE_INSTANCE', id);
+    activateInstance({ commit }, instance) {
+      commit('ACTIVATE_INSTANCE', instance.id);
     },
     makeMove({ commit }, move) {
       console.log('makeMove', move);
       commit('MAKE_MOVE', move);
+    },
+    clearCountdown({ commit }) {
+      commit('CLEAR_COUNTDOWN');
     }
-
-
-
-    
  }
 
 export const getters = {
@@ -286,20 +318,53 @@ export const getters = {
     activeInstance(state) {
       if (state.socket) {
         if (state.socket.instances) {
-          let index = state.socket.instances.findIndex(index => index.id == state.activeInstanceId);
+          let index = state.socket.instances.findIndex(async index => {
+            while (!index.id) {
+              await new Promise(resolve => setTimeout(resolve, 0));
+              console.log('waiting in findIndex function...');
+            }
+            index.id == state.activeInstanceId
+          });
           if (index === -1) return null;
-          else return state.socket.instances[index];
+          else {
+            return state.socket.instances[index];
+            
+          }
         } else return null;
       } else return null;
     },
     gameNotifications(state) {
       if (!state.socket.gameNotifications) return null;
-      let index = state.socket.gameNotifications.findIndex(index => index.id === state.activeInstanceId);
+      let index = state.socket.gameNotifications.findIndex(async index => {
+        while (!index.id) {
+          await new Promise(resolve => setTimeout(resolve, 0));
+          console.log('waiting in findIndex function...');
+        }
+        index.id === state.activeInstanceId
+      });
       return state.socket.gameNotifications[index].notificationArr;
     },
-    progress(state) {
-      let index = state.socket.gameNotifications.findIndex(index => index.id === state.activeInstanceId);
+    gameProgress(state) {
+      let index = state.socket.gameNotifications.findIndex(async index => {
+        while (!index.id) {
+          await new Promise(resolve => setTimeout(resolve, 0));
+          console.log('waiting in findIndex function...');
+        }
+        index.id === state.activeInstanceId
+      });
+      console.log(state.socket.gameNotifications[index]);
       return state.socket.gameNotifications[index].progress;
+    },
+    gameCountdown(state) {
+      let index = state.socket.gameNotifications.findIndex(async index => {
+        while (!index.id) {
+          await new Promise(resolve => setTimeout(resolve, 0));
+          console.log('waiting in findIndex function...');
+        }
+        index.id === state.activeInstanceId
+      });
+      console.log(state.socket.gameNotifications[index]);
+      return state.socket.gameNotifications[index].countdown;
     }
 
   }

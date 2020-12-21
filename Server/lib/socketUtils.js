@@ -17,8 +17,6 @@ module.exports = {
     };
   },
   addNotification: async (user, notification) => {
-    console.log('trying to push notification to ', user);
-    console.log(notification);
     let success = true;
          
     try {
@@ -27,12 +25,9 @@ module.exports = {
           success = false;
           throw new Error(err.message, null);
         } else {
-          console.log('response: ')
-          console.log(res);
           let length = res.notifications.length;
-          console.log('length: ', length);
+          
           for (let i = 0; i < length; i++) {
-            
             if (res.notifications[i].challenger === notification.challenger && res.notifications[i].challenge) {
               console.log(`${user} already challenged by ${notification.challenger}`);
               success = false;
@@ -86,7 +81,6 @@ module.exports = {
     await User.findOne({ username: playerX_name })
       .then(user => {
         playerX_id = user._id;
-        console.log(playerX_id);
         playerX_fetched = true;
         
       })
@@ -94,29 +88,22 @@ module.exports = {
     await User.findOne({ username: playerO_name })
       .then(user => {
         playerO_id = user._id;
-        console.log(playerX_id);
         playerO_fetched = true;
       })
       .catch(err => console.log(err));
-    console.log('playerX fetched: ', playerX_fetched);
-    console.log('playerO fetched: ', playerO_fetched);
+    
     if (playerX_fetched && playerO_fetched) {
     
       //id gets inserted by findOneAndUpdate method with upsert flag - check this!!
-      let insertData = {
-        id: instance.id,
-        completed: instance.completed,
-        started: instance.started,
-        lastUpdate: Date.now(),
-        playerOne: instance.playerOne,
-        playerTwo: instance.playerTwo,
-        game: instance.game,
-        progress: instance.progress,
-        playerX_id: playerX_id,
-        playerO_id: playerO_id,
-      }
+      instance.lastUpdate = Date.now();
+      instance.playerX_id = playerX_id;
+      instance.playerO_id = playerO_id;
+      
+      let insertData = JSON.parse(JSON.stringify(instance));
+
       //Update database
-      await Game.findOneAndUpdate({ id: id}, JSON.parse(JSON.stringify(insertData)), { upsert: true })
+      let DBobject = new Game(insertData);
+      await DBobject.save()
         .then(() => {
           console.log('game successfully saved to DB...');
           success = true;
@@ -126,7 +113,6 @@ module.exports = {
         });
 
     }
-    console.log('returning: ', success);
     return success;
   },
 
@@ -148,7 +134,6 @@ module.exports = {
     let response = false;
     await Game.findOne({ id: id})
       .then(res => {
-        console.log('res from findGame: ', res);
         if (res) response = true;
       })
       .catch(err => {

@@ -3,18 +3,21 @@
     
     
       <p class="title">{{ `Game vs ${instance.playerOne.player === user.name ? instance.playerOne.player : instance.playerTwo.player}` }}</p>
-      
+    <!--  
       <div class="notification is-dark has-text-left">
         <div v-if="gameNotifications">
         <div v-for="(entry, index) in gameNotifications" :key="index">
           <p class="is-size-7 is-family-code">{{ entry }}</p>
         </div>
         </div>
-          
+    
+    
         
       </div>
-      <b-progress v-if="progress != 100" type="is-primary" size="is-medium" :value="progress ? progress: undefined"></b-progress>
-    
+      -->
+      <GameNotifications :instance="instance" />
+      <Progressbar :instance="instance" />
+      
     <div v-if="instance.started">
       <div class="columns is-mobile">
         <div class="column">
@@ -111,15 +114,22 @@
 </template>
 
 <script>
-import { mapGetters, mapActions } from 'vuex';
+  import Progressbar from '@/components/Progressbar.vue';
+  import GameNotifications from '@/components/GameNotifications.vue';
 
+  import { mapGetters, mapActions } from 'vuex';
 
-export default {
-  props: {
-    instance: [Object]
+  export default {
+    props: {
+      instance: [Object]
+    },
+    components: {
+      Progressbar,
+      GameNotifications
+    
   },
   computed: {
-    ...mapGetters('user', ['user', 'gameNotifications', 'progress'])
+    ...mapGetters('user', ['user', 'progress'])
   },
   data() {
     return {
@@ -135,7 +145,7 @@ export default {
       );
     },
     isLastMove(id) {
-      console.log(this.instance);
+      
       if (this.instance.game.currentMove) {
         let [i, j] = this.instance.game.currentMove;
         return this.instance.game.gridReference[i][j] === id;
@@ -251,9 +261,7 @@ export default {
 .status-message {
   height: 5.25rem;
 }
-.is-family-code {
-  color: hsl(171, 100%, 41%)
-}
+
 </style>
 
 
