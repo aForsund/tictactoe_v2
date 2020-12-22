@@ -54,7 +54,7 @@ export default {
         console.log('inside interval');
         this.value = this.value - this.interval;
         console.log(this.value);
-        if(this.value <= 0) {
+        if(this.value <= 0 || !this.value) {
           this.stopInterval();
         }
       }, this.interval);

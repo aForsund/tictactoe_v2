@@ -21,12 +21,17 @@ const timers = [];
 module.exports = (socket, io) => {
         
         console.log('new WS connection...');
+        let tempIndex = users.findIndex(index => index.id === socket.id);
+        if (tempIndex === -1) socket.emit('sendInfo');
+        
         
         
         socket.on('connection', ({ username }) => {
-            console.log('test on connect...')
             socket.emit('hello', `hello ${username}, from socket.io`);
-            users.push({ id: socket.id, username: username });
+            let index = users.findIndex(index => index.username === username);
+            if (index === -1) users.push({ id: socket.id, username: username });
+            else users[index].id = socket.id;
+            
             io.emit('updateUsers', users);
             checkActiveInstances(username);
 
@@ -372,6 +377,7 @@ module.exports = (socket, io) => {
         })
 
         socket.on('disconnect', () => {
+          console.log('user disconnected')
             let user = [null];
             let index = users.findIndex(index => index.id === socket.id);
             if (index !== -1) {
@@ -380,6 +386,7 @@ module.exports = (socket, io) => {
               io.emit('updateUsers', users);
               handleDisconnect(user[0]);
             }
+            console.log(`${user[0]} disconnected`);
         });
 
         const refreshSockets = () => {

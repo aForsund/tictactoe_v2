@@ -13,7 +13,8 @@ export default {
   computed: {
     ...mapGetters('user', ['gameNotifications']),
     getNotifications() {
-      return this.gameNotifications.slice(-5);
+      if (this.gameNotifications) return this.gameNotifications.slice(-5);
+      else return null;
     }
   }
 }

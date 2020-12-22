@@ -28,28 +28,25 @@
       <button @click="printUsers">Print users</button>
       <button @click="testJWT">TEST JWT</button>
       <button @click="printNotifications">Print notifications</button>
-      <div v-if="socket">
-      <p v-for="(user, index) in socket.users" :key="index">{{ index }}: {{ user.username }}</p>
-      </div>
+      <button @click="printCollection">Print collection</button>
+      <button @click="printActiveInstance">Print active instance</button>
+      <button @click="printId">Print ID</button>
+      <button @click="printCollectionIndex">Print collection index</button>
     </div>
     
-
-  </div>
-  <div v-if="activeChat" class="tile is-8 is-parent">
-    <div class="tile is-child notification is-dark">
-      
-      <Chat />
-      
-    </div>
-    
-
 
   </div>
   <div v-if="activeInstance" class="tile is-8 is-parent">
     <div class="tile is-child is-dark">
-      <MultiplayerGame :instance="activeInstance"/>
+      <MultiplayerGame />
     </div>
   </div>
+  <div v-if="activeChat" class="tile is-8 is-parent">
+    <div class="tile is-child notification is-dark">
+      <Chat />
+    </div>
+  </div>
+  
   
 </div>
   </div>
@@ -77,7 +74,7 @@ export default {
     MultiplayerGame
   },
   computed: {
-    ...mapGetters("user", ["user", "users", "socket", "activeChat", "online", "activeInstance"]),
+    ...mapGetters("user", ["user", "users", "socket", "activeChat", "online", "activeInstance", 'id']),
     
 
   },
@@ -95,6 +92,18 @@ export default {
     },
     printNotifications() {
       console.log(this.socket.notifications);
+    },
+    printCollection() {
+      console.log(this.socket.collection);
+    },
+    printActiveInstance() {
+      console.log(this.activeInstance);
+    },
+    printId() {
+      console.log(this.id);
+    },
+    printCollectionIndex() {
+      console.log(this.socket.collectionIndex);
     }
   }
 };

@@ -1,9 +1,10 @@
 <template>
-  <div class="tags has-addons">
-      <span class="tag is-info">{{ notification.challenge ? 'Challenged by' : 'No info yet..'}} - {{ notification.username }}</span>
-      <span v-if="notification.sentChallenge" class="tag is-info" :class="{ 'is-warning' : notification.accepted}" @click="clickNotification(notification)">{{ notification.accepted ? 'challenge accepted' : 'challenge sent'}}</span>
-      <span v-else class="tag is-success" @click="clickNotification(notification)"></span>
-      <a class="tag is-danger is-delete" @click="dismiss(notification)"></a>
+  <div class="buttons has-addons">
+    <button class="button is-info" :class="{ 'is-success': notification.challenge }" @click="clickNotification(notification)">
+      <span v-if="notification.challenge">Challenged by {{ notification.challenger }}</span>
+      <span v-else-if="notification.sentChallenge">{{ notification.accepted ? `Challenge vs ${notification.receiver} accepted` : `Challenge sent to ${notification.receiver}` }}</span>
+    </button>
+    <button class="button is-danger " @click="dismiss(notification)">X</button>
   </div>
 </template>
 
@@ -20,13 +21,12 @@ export default {
     }
   },
   methods: {
-    ...mapActions('user', ['accept', 'dismiss', 'joinGame']),
+    ...mapActions('user', ['accept', 'dismiss']),
     expand() {
       this.expanded ? this.expanded = false : this.expanded = true;
     },
     clickNotification(notification) {
       if (notification.challenge) this.accept(notification);
-      else if (notification.accepted) this.joinGame(notification);
     }
   }
 };

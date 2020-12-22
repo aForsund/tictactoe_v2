@@ -2,8 +2,8 @@
   <div class="container has-text-centered tictactoe">
     
     
-      <p class="title">{{ `Game vs ${instance.playerOne.player === user.name ? instance.playerOne.player : instance.playerTwo.player}` }}</p>
-    <!--  
+      <p class="title">{{ `Game vs ${activeInstance.playerOne.player === user.name ? activeInstance.playerOne.player : activeInstance.playerTwo.player}` }}</p>
+    <!-- 
       <div class="notification is-dark has-text-left">
         <div v-if="gameNotifications">
         <div v-for="(entry, index) in gameNotifications" :key="index">
@@ -12,20 +12,20 @@
         </div>
     
     
-        
+     
       </div>
-      -->
-      <GameNotifications :instance="instance" />
-      <Progressbar :instance="instance" />
-      
-    <div v-if="instance.started">
+    -->     
+      <GameNotifications :instance="activeInstance" />
+      <Progressbar :instance="activeInstance" />
+       
+    <div v-if="activeInstance.started">
       <div class="columns is-mobile">
         <div class="column">
           <div>
-            <h1 class="subtitle" key="playerOne">X: {{ instance.playerOne.player }}</h1>
+            <h1 class="subtitle" key="playerOne">X: {{ activeInstance.playerOne.player }}</h1>
 
-            <h1 class="title" :key="instance.playerOne.score">
-              {{ instance.playerOne.score }}
+            <h1 class="title" :key="activeInstance.playerOne.score">
+              {{ activeInstance.playerOne.score }}
             </h1>
           </div>
         </div>
@@ -33,17 +33,17 @@
           <div>
             <h1 class="subtitle" key="turn">Turn</h1>
 
-            <h1 class="title" :key="instance.game.status.turnCount">
-              {{ instance.game.status.turnCount }}
+            <h1 class="title" :key="activeInstance.game.status.turnCount">
+              {{ activeInstance.game.status.turnCount }}
             </h1>
           </div>
         </div>
         <div class="column">
           <div>
-            <h1 class="subtitle" key="playerTwo">O: {{ instance.playerTwo.player }}</h1>
+            <h1 class="subtitle" key="playerTwo">O: {{ activeInstance.playerTwo.player }}</h1>
 
-            <h1 class="title" :key="instance.playerTwo.score">
-              {{ instance.playerTwo.score }}
+            <h1 class="title" :key="activeInstance.playerTwo.score">
+              {{ activeInstance.playerTwo.score }}
             </h1>
           </div>
         </div>
@@ -51,10 +51,10 @@
     </div>
     
 
-    <div v-if="instance.game" class="board">
-      <div v-for="(n, i) in instance.game.board" :key="`row${i + 1}`" class="row">
+    <div v-if="activeInstance.game" class="board">
+      <div v-for="(n, i) in activeInstance.game.board" :key="`row${i + 1}`" class="row">
         <div
-          v-for="(n, j) in instance.game.board[i]"
+          v-for="(n, j) in activeInstance.game.board[i]"
           class="cell"
           :key="`row${i + 1}col${j + 1}`"
           v-bind:id="`row${i + 1}col${j + 1}`"
@@ -67,28 +67,28 @@
           @click="confirmInput(`row${i + 1}col${j + 1}`)"
         >
           <transition-group name="fade">
-            <span :key="`row${i + 1}col${j + 1}`">{{ instance.game.board[i][j] }}</span>
+            <span :key="`row${i + 1}col${j + 1}`">{{ activeInstance.game.board[i][j] }}</span>
           </transition-group>
         </div>
       </div>
     </div>
     <transition name="fade">
-      <div v-if="instance.game" class="container has-text-centered mt-4 mb-2 status-message">
+      <div v-if="activeInstance.game" class="container has-text-centered mt-4 mb-2 status-message">
         <div>
           <div class="pt-1">
-            <p class="title" v-bind:class="{ 'has-text-primary': instance.game.status.isEnded }">
-              <span v-if="instance.game.status.isEnded">{{ result.outcome === 'draw' ? 'It\'s a draw' : `${result.outcome.mark} has won` }}</span>
-              <span v-else>{{ instance.game.currentPlayer.mark }}'s turn</span>
+            <p class="title" v-bind:class="{ 'has-text-primary': activeInstance.game.status.isEnded }">
+              <span v-if="activeInstance.game.status.isEnded">{{ result.outcome === 'draw' ? 'It\'s a draw' : `${result.outcome.mark} has won` }}</span>
+              <span v-else>{{ activeInstance.game.currentPlayer.mark }}'s turn</span>
             </p>
-            <p ref="element" class="subtitle" v-bind:class="{ 'has-text-primary': instance.game.status.isEnded }">
-              <span v-if="instance.game.status.isEnded">Press here to play again</span>
-              <span v-else-if="instance.game.history.length === 0">Let's go</span>
+            <p ref="element" class="subtitle" v-bind:class="{ 'has-text-primary': activeInstance.game.status.isEnded }">
+              <span v-if="activeInstance.game.status.isEnded">Press here to play again</span>
+              <span v-else-if="activeInstance.game.history.length === 0">Let's go</span>
               
               <span v-else
                 >Last move:
-                {{ instance.game.history[instance.game.history.length - 1].player.mark }} to [{{
-                  instance.game.history[instance.game.history.length - 1].move[0] + 1
-                }}, {{ instance.game.history[instance.game.history.length - 1].move[1] + 1 }}]
+                {{ activeInstance.game.history[activeInstance.game.history.length - 1].player.mark }} to [{{
+                  activeInstance.game.history[activeInstance.game.history.length - 1].move[0] + 1
+                }}, {{ activeInstance.game.history[activeInstance.game.history.length - 1].move[1] + 1 }}]
               </span>
             </p>
           </div>
@@ -106,6 +106,7 @@
         
       </div>
     </transition>
+    
   </div>
   
   
@@ -114,22 +115,20 @@
 </template>
 
 <script>
-  import Progressbar from '@/components/Progressbar.vue';
-  import GameNotifications from '@/components/GameNotifications.vue';
+   import Progressbar from '@/components/Progressbar.vue';
+   import GameNotifications from '@/components/GameNotifications.vue';
 
-  import { mapGetters, mapActions } from 'vuex';
+  import { mapActions, mapGetters } from 'vuex';
 
   export default {
-    props: {
-      instance: [Object]
-    },
+    
     components: {
       Progressbar,
       GameNotifications
     
   },
   computed: {
-    ...mapGetters('user', ['user', 'progress'])
+    ...mapGetters('user', ['user', 'activeInstance'])
   },
   data() {
     return {
@@ -140,15 +139,15 @@
   methods: {
     ...mapActions('user', ['makeMove']),
     isHighlighted(id) {
-      return this.instance.game.status.winCondition.includes(
+      return this.activeInstance.game.status.winCondition.includes(
         id
       );
     },
     isLastMove(id) {
       
-      if (this.instance.game.currentMove) {
-        let [i, j] = this.instance.game.currentMove;
-        return this.instance.game.gridReference[i][j] === id;
+      if (this.activeInstance.game.currentMove) {
+        let [i, j] = this.activeInstance.game.currentMove;
+        return this.activeInstance.game.gridReference[i][j] === id;
       }
     },
     viewHistory() {
@@ -162,7 +161,7 @@
     },
     async confirmInput(move) {
       console.log(move);
-      if (this.instance.game.status.isEnded) return;
+      if (this.activeInstance.game.status.isEnded) return;
       if (this.processingInput === true) return;
       else {
         this.processingInput = true;
