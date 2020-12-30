@@ -1,10 +1,11 @@
 <template>
   <div class="mb-4">
-    <p class="subtitle mb-2">{{ getText }}</p>
-    <b-progress type="is-primary" size="is-medium" :value="showCountdown ? getValue : gameProgress" :show-value="displayValue" :format="getFormat" :precision="0">
+    <p class="subtitle mb-2">{{ getValue ? `Countdown: ${value/1000} `: 'Waiting for input..'}}</p>
+    
+    <b-progress type="is-primary" size="is-large" :value="showCountdown ? getValue : gameProgress">
       
     </b-progress>
-    <p>{{ gameProgress }}</p>
+    
   </div>  
 
 </template>
@@ -19,8 +20,6 @@ export default {
   data() {
     return {
       value: 0,
-      
-      text: 'test',
       format: 'raw',
       timer: null,
       interval: 1000
@@ -30,21 +29,12 @@ export default {
     ...mapGetters('user', ['gameProgress', 'gameCountdown']),
     
     getValue() {
-      return ((this.value/this.gameCountdown)*100);
-    },
-    displayValue() {
-      return this.showValue;
-    },
-    getText() {
-      return this.text;
-    },
-    getFormat() {
-      return this.format;
+      if (!this.gameCountdown) return undefined; 
+      else return ((this.value/this.gameCountdown)*100);
     },
     showCountdown() {
-      return this.value === 0 ? false : true;
+      return this.instance.started;
     }
-
   },
   methods: {
     ...mapActions('user', ['clearCountdown']),

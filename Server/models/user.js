@@ -17,7 +17,15 @@ const userSchema = new mongoose.Schema({
     },
     hash: String,
     salt: String,
-    notifications: Array
+    notifications: Array,
+    lastOutcomes: {
+      type: Array,
+      default: []
+    },
+    gameHistory: {
+      type: Array,
+      default: []
+    }
 });
 
 module.exports = mongoose.model('User', userSchema);

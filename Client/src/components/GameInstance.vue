@@ -49,5 +49,7 @@ export default {
 <style scoped>
 .button {
   transition: all 0.4s;
+  width: 100%;
+  
 }
 </style>

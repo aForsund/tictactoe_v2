@@ -85,7 +85,7 @@ export default class MySocket {
           catch (err) {
             console.log(err);
           }
-          if (response) {
+          if (response.data) {
             console.log('adding: ', response.data);
             this.updateGame(response.data);
           }
@@ -129,6 +129,7 @@ export default class MySocket {
     }
 
     joinGame(user, gameId) {
+      console.log('joining game... ', user, gameId);
       this.socket.emit('joinGame', user, gameId);
       
     }

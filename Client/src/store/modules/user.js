@@ -114,8 +114,8 @@ export const mutations = {
       //let index = state.socket.notifications.findIndex(index => index === challenge);
       //if (index !== -1) state.socket.notifications.splice(index, 1);
     },
-    JOIN_MULTIPLAYER_GAME(state, instance) {
-      state.socket.joinGame(state.user.name, instance.id);
+    JOIN_MULTIPLAYER_GAME(state, id) {
+      state.socket.joinGame(state.user.name, id);
     },
     ACTIVATE_INSTANCE(state, id) {
       state.activeInstance = id;
@@ -135,8 +135,11 @@ export const mutations = {
       state.socket.makeMove(state.user.name, state.activeInstance, move);
     },
     CLEAR_COUNTDOWN(state, id) {
-      
       state.socket.updateCountdown(id);
+      let temp = {...state.socket.collection[id]};
+      
+      state.socket.collection[id] = {...temp};
+
       //state.socket.gameNotifications.splice(index, 1, state.socket.gameNotifications[index]);
       //state.socket.spliceNotification(index, state.socket.gameNotifications[index]);
       //Vue.set(state.socket.gameNotifications, index, state.socket.gameNotifications[index]);

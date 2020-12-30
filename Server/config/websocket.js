@@ -217,7 +217,11 @@ module.exports = (socket, io) => {
           }
 
           //check if game exists in instance array..
-          let index = multiplayerInstances.findIndex(index => id === index.id);
+          console.log(`check if game exists in instance array, ${id}`);
+          let index = multiplayerInstances.findIndex(index => {
+            console.log('checking vs ', index.id);
+            id === index.id
+          });
           if (index === -1) {
             handleErrors('notification', 'Instance not found in instance array... forcing array update');
             await getActiveInstances();
@@ -414,8 +418,13 @@ module.exports = (socket, io) => {
         }
 
         const deleteInstance = id => {
-          multiplayerInstances.findIndex(index => index.id === id)
+          let index = multiplayerInstances.findIndex(index => index.id === id)
+          if (index === -1) {
+            io.to(id).emit('notification', 'Error deleting instance...');
+            return;
+          }
           multiplayerInstances.splice(index, 1);
+          io.to(id).emit('deleteInstance', id);
         }
 
         //Remove user from all active instances user was part of..
@@ -443,6 +452,7 @@ module.exports = (socket, io) => {
           }
         }  
 
+        //User forfeits ongoing game
         const leaveGame = (user, instanceId) => {
 
         }
@@ -490,17 +500,52 @@ module.exports = (socket, io) => {
         }
 
         //Evaluate outcome of game object and call further actions
-        const decideOutcome = (instance, timeout = false) => {
-          let endGame = false;
+        const decideOutcome = async (instance, timeout = false) => {
+          instance.completed = true;
+          let success = await socketUtils.updateGame(instance);
+          if (success) io.to(instance.id).emit('fetchInstance', instance.id);
+          else {
+            io.to(instance.id).emit('notification', 'Something went wrong with updating DB on decideOutcome function...');
+            return;
+          }
           // 1 -Calculate win or draw
+          
           if (timeout) {
-            endGame = true;
             console.log('timeout...');
             console.log('playerX_id: ', instance.playerX_id);
             console.log('playerO_id: ', instance.playerO_id);
             io.to(instance.id).emit('notification', 'end game on timeout...');
+            if (instance.game.currentPlayer.mark === 'X') {
+              updateUser(instance.playerX_id, 'L', instance.id);
+              updateUser(instance.playerO_id, 'W', instance.id);
+            } else {
+              updateUser(instance.playerX_id, 'W', instance.id);
+              updateUser(instance.playerO_id, 'O', instance.id);
+            }
+            deleteInstance(instance.id);
           }
-          io.to(instance.id).emit('notification', 'decideOutcome function is not implemented yet...');
+          
+          else if (instance.game.status.draw) {
+            io.to(instance.id).emit('notification', 'end game on draw...');
+            updateUser(instance.playerX_id, 'D', instance.id);
+            updateUser(instance.playerO_id, 'D', instance.id);
+            deleteInstance(instance.id);
+          }
+          
+          else {
+            if (instance.game.currentPlayer.mark === 'X') {
+              updateUser(instance.playerX_id, 'W', instance.id);
+              updateUser(instance.playerO_id, 'L', instance.id);
+            } else {
+              updateUser(instance.playerX_id, 'L', instance.id);
+              updateUser(instance.playerO_id, 'O', instance.id);
+            }
+            deleteInstance(instance.id);
+          }
+          
+          
+          
+          
 
           
 
@@ -524,9 +569,13 @@ module.exports = (socket, io) => {
           });
 
           //loop through insertArray and start each individual game instance...
-          insertArray.forEach(entry => startGame(entry));
+          for (let i = 0; i < insertArray.length; i++) {
+            console.log(`starting game ${insertArray[i].id}`);
+            startGame(insertArray[i]);
+          }
           
 
+          insertArray.forEach(entry => startGame(entry));
           multiplayerInstances.push(...insertArray);
 
           return true;
@@ -537,15 +586,21 @@ module.exports = (socket, io) => {
         //Function to boot new game as instances fetched from DB are converted to JSON objects 
         const startGame = (instance) => {
             
-          //get required parameters       
-          let playerOne = instance.playerOne;
-          let playerTwo = instance.playerTwo;
-          let board = instance.game.board;
-          let turnCount = instance.game.status.turnCount;
+          //get required parameters
+          let gameParameters = {
+            playerOne: instance.game.playerOne,
+            playerTwo: instance.game.playerTwo,
+            board: instance.game.board,
+            turnCount: instance.game.status.turnCount
+          }       
           
           //start new game with obtained parameters
-          instance.game = new MultiplayerGame(playerOne, playerTwo, board, turnCount);
+          instance.game = new MultiplayerGame(gameParameters);
           
+        }
+
+        const updateUser = async (user, result, gameID) => {
+          await socketUtils.updateUser(user, result, gameID);
         }
         
 }

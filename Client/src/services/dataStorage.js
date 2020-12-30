@@ -1,15 +1,37 @@
-import Vue from 'vue';
+
+
 
 export default class DataStorage {
   constructor() {
     this.index = [];
     this.collection = {};
+
+
+    this.emptyObject = {
+      started: false,
+      completed: false,
+      lastUpdate: null,
+      progress: undefined,
+      notifications: [],
+      game: {
+        board: null,
+        currentMove: null,
+        currentPlayer: null,
+        history: null,
+        playerOne: null,
+        playerTwo: null,
+        status: null
+      }
+    }
   }
 
   //Add a new game to collection
   addGame(game) {
     this.index.push(game.id);
-    this.collection[game.id] = {...game};
+
+    this.collection[game.id] = {...this.emptyObject};
+
+
     
   }
   //Delete game from collection

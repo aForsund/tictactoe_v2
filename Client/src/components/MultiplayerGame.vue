@@ -1,22 +1,10 @@
 <template>
   <div class="container has-text-centered tictactoe">
     
+    <p class="title">{{ `Game vs ${activeInstance.playerOne.player === user.name ? activeInstance.playerTwo.player : activeInstance.playerOne.player}` }}</p>
     
-      <p class="title">{{ `Game vs ${activeInstance.playerOne.player === user.name ? activeInstance.playerOne.player : activeInstance.playerTwo.player}` }}</p>
-    <!-- 
-      <div class="notification is-dark has-text-left">
-        <div v-if="gameNotifications">
-        <div v-for="(entry, index) in gameNotifications" :key="index">
-          <p class="is-size-7 is-family-code">{{ entry }}</p>
-        </div>
-        </div>
-    
-    
-     
-      </div>
-    -->     
-      <GameNotifications :instance="activeInstance" />
-      <Progressbar :instance="activeInstance" />
+    <GameNotifications :instance="activeInstance" />
+    <Progressbar :instance="activeInstance" />
        
     <div v-if="activeInstance.started">
       <div class="columns is-mobile">
@@ -77,12 +65,12 @@
         <div>
           <div class="pt-1">
             <p class="title" v-bind:class="{ 'has-text-primary': activeInstance.game.status.isEnded }">
-              <span v-if="activeInstance.game.status.isEnded">{{ result.outcome === 'draw' ? 'It\'s a draw' : `${result.outcome.mark} has won` }}</span>
+              <span v-if="activeInstance.game.status.isEnded">{{ activeInstance.game.history.result === 'draw' ? 'It\'s a draw' : `${activeInstance.game.history.result} has won` }}</span>
               <span v-else>{{ activeInstance.game.currentPlayer.mark }}'s turn</span>
             </p>
             <p ref="element" class="subtitle" v-bind:class="{ 'has-text-primary': activeInstance.game.status.isEnded }">
-              <span v-if="activeInstance.game.status.isEnded">Press here to play again</span>
-              <span v-else-if="activeInstance.game.history.length === 0">Let's go</span>
+              <span v-if="activeInstance.game.status.isEnded">Game Completed</span>
+              <span v-if="activeInstance.game.history.length === 0">Let's go</span>
               
               <span v-else
                 >Last move:
@@ -128,7 +116,8 @@
     
   },
   computed: {
-    ...mapGetters('user', ['user', 'activeInstance'])
+    ...mapGetters('user', ['user', 'activeInstance']),
+      
   },
   data() {
     return {

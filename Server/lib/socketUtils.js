@@ -153,8 +153,32 @@ module.exports = {
     return response;
   },
 
-  endGame: async (id, instance, result) => {},
-  updateUsers: async (id, instance) => {},
-  
- 
+  updateUser: async (user, result, gameID) => {
+    try{
+      await User.findOne({ _id: user }, async (err, res) => {
+        if (err) throw new Error(err.message, null);
+        else {
+          //Set lastOutcomes
+          let lastOutcomes = null;
+          if (!res.lastOutcomes) lastOutcomes = [];
+          else lastOutcomes = res.lastOutcomes;
+          lastOutcomes.push(result);
+          lastOutcomes = lastOutcomes.slice(-5);
+          res.lastOutcomes = lastOutcomes;
+          //Increase games played
+          res.gamesPlayed ++;
+          //Add gameID to gameHistory
+          let gameHistory = null;
+          if (!res.gameHistory) gameHistory = [];
+          else gameHistory = res.gameHistory;
+          gameHistory.push(gameID);
+          res.gameHistory = gameHistory;
+          //Save changes
+          await res.save();  
+        }
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  }  
 };

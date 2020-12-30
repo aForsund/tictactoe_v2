@@ -1,6 +1,15 @@
 module.exports = class MultiplayerGame {
   constructor({ playerOne, playerTwo, board, turnCount }) {
-		let emptyBoard = [
+    
+    console.log('inside constructor');
+    console.log('here are the parameters passed to me');
+    console.log(playerOne);
+    console.log(playerTwo);
+    console.log(board);
+    console.log(turnCount);
+    
+    
+    let emptyBoard = [
 			['', '', ''],
 			['', '', ''],
 			['', '', ''],
@@ -25,8 +34,8 @@ module.exports = class MultiplayerGame {
 		this.playerOne = playerOne;
 		this.playerTwo = playerTwo;
 
-		//set current player turn
-    this.currentPlayer = this.playerOne.turn ? this.playerOne : this.playerTwo;
+    //set current player turn
+    this.currentPlayer = playerOne.turn ? this.playerOne : this.playerTwo;
     
     this.history = [];
 
