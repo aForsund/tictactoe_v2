@@ -64,19 +64,19 @@
       <div v-if="activeInstance.game" class="container has-text-centered mt-4 mb-2 status-message">
         <div>
           <div class="pt-1">
+            
             <p class="title" v-bind:class="{ 'has-text-primary': activeInstance.game.status.isEnded }">
-              <span v-if="activeInstance.game.status.isEnded">{{ activeInstance.game.history.result === 'draw' ? 'It\'s a draw' : `${activeInstance.game.history.result} has won` }}</span>
+              <span v-if="activeInstance.game.status.isEnded">{{ activeInstance.game.history.result === 'draw' ? 'It\'s a draw' : `${activeInstance.game.currentPlayer.mark} has won` }}</span>
+              <span v-else-if="activeInstance.completed">{{ activeInstance.game.currentPlayer.mark }} lost on timeout...</span>
               <span v-else>{{ activeInstance.game.currentPlayer.mark }}'s turn</span>
             </p>
-            <p ref="element" class="subtitle" v-bind:class="{ 'has-text-primary': activeInstance.game.status.isEnded }">
-              <span v-if="activeInstance.game.status.isEnded">Game Completed</span>
-              <span v-if="activeInstance.game.history.length === 0">Let's go</span>
-              
-              <span v-else
-                >Last move:
+            <p class="subtitle">
+              <span v-if="activeInstance.game.history.length === 0 && !activeInstance.completed">Let's go</span>
+              <span v-else-if="activeInstance.game.history.length > 0">
+                Last move:
                 {{ activeInstance.game.history[activeInstance.game.history.length - 1].player.mark }} to [{{
-                  activeInstance.game.history[activeInstance.game.history.length - 1].move[0] + 1
-                }}, {{ activeInstance.game.history[activeInstance.game.history.length - 1].move[1] + 1 }}]
+                  activeInstance.game.history[activeInstance.game.history.length - 1].move[1] + 1
+                }}, {{ activeInstance.game.history[activeInstance.game.history.length - 1].move[0] + 1 }}]
               </span>
             </p>
           </div>
@@ -126,14 +126,13 @@
     };
   },
   methods: {
-    ...mapActions('user', ['makeMove']),
+    ...mapActions('user', ['makeMove', 'closeGame']),
     isHighlighted(id) {
       return this.activeInstance.game.status.winCondition.includes(
         id
       );
     },
     isLastMove(id) {
-      
       if (this.activeInstance.game.currentMove) {
         let [i, j] = this.activeInstance.game.currentMove;
         return this.activeInstance.game.gridReference[i][j] === id;
@@ -141,12 +140,6 @@
     },
     viewHistory() {
       this.$store.commit("VIEW_HISTORY");
-    },
-    endRound() {
-      console.log('endround...');
-    },
-    closeGame() {
-      console.log('closegame...');
     },
     async confirmInput(move) {
       console.log(move);

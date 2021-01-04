@@ -1,7 +1,7 @@
 import axios from 'axios';
 //import { store } from '../store/store'
 
-const BASE_URL = 'http://localhost:3000';
+const BASE_URL = '';
 
 axios.interceptors.response.use(response => response, error => {if (error.response.status === 401) console.log('logout....')
 return Promise.reject(error)}
@@ -31,7 +31,7 @@ export default {
 		return apiClient.post('/api/auth/register', {
 			username: data.name,
 			email: data.email,
-			password: data.password,
+      password: data.password,
 		});
 	},
 	loginUser(data) {

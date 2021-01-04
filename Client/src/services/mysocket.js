@@ -9,6 +9,7 @@ export default class MySocket {
   constructor(user) {
     //this.storage = new DataStorage();
     this.user = user;
+    this.details = user.details;
     this.socket = io(SERVER_URL);
     this.chat = [];
     this.users = [];
@@ -56,7 +57,10 @@ export default class MySocket {
       });
 
       this.socket.on('updateUsers', async users => {
-        this.users = users;
+        let tempArray = users;
+        let index = tempArray.findIndex(index => index.username === this.user.name);
+        if (index !== -1) tempArray.splice(index, 1);
+        this.users = tempArray;
       });
 
       this.socket.on('refreshSockets', () => this.connect());
@@ -102,6 +106,10 @@ export default class MySocket {
         this.socket.on('gameStopCountdown', id => {
           this.updateCountdown(id);
         });
+
+        this.socket.on('updateUser', () => {
+          this.updateUser();
+        })
     }
 
     connect() {
@@ -158,45 +166,23 @@ export default class MySocket {
       this.socket.emit('declineRematch');
     }
 
-    leaveGame() {
-      this.socket.emit('leaveGame');
-        
-    }
     logOut() {
       this.socket.close();
     }
 
-    //Collection methods
-  /*
-    //Add a new game to collection
-  
-  addGame(game) {
-    this.collectionIndex.push(game.id);
-    this.collection[game.id] = game;
-    this.forceUpdate(game.id);
-    
-  }
-  */
   //Delete game from collection
   deleteGame(id) {
-    let i = this.index.findIndex(index => index === id);
-    this.index.splice(i, 1);
-    delete this.collection[id];
+    let i = this.collectionIndex.findIndex(index => index === id);
+    if (i !== -1) {
+      this.collectionIndex.splice(i, 1);
+      delete this.collection[id];
+    }
   }
   //Update game object in collection
   updateGame(game) {
     //Create game object if it does not exist
-    
-
-    //More updates to collection to be added as required in client implementation...
-    //this.collection[game.id] = (Object.assign({}), game)
     if (!this.collectionIndex.includes(game.id)) this.collectionIndex.push(game.id);
     this.collection[game.id] = Object.assign({}, this.collection[game.id], game);
-    //this.forceUpdate(game.id);
-    //this.collection[game.id] = Object.assign({}, this.collection[game.id], game);
-    //if (!this.collection[game.id].started && game.started) Vue.set(this.collection, [game.id].started, game.started);
-    //if (game.completed) Vue.set(this.collection, [game.id].completed, game.completed);
-    //if (game.game) Vue.set(this.collection, [game.id].game, JSON.parse(JSON.stringify(game.game)));
   }
   //Update progress indicator in collection
   updateProgress(id, progress) {
@@ -238,5 +224,12 @@ export default class MySocket {
     //let temp = {...this.collection[id]};
     //this.collection[id] = {...temp};
   }
-
+  async updateUser() {
+    let details = await API_interface.getUser(this.user.id);
+    this.user.details.gamesPlayed = details.data.gamesPlayed;
+    this.user.details.lastOutcomes = details.data.lastOutcomes.join('');
+    this.user.details.rating = details.data.rating;
+    //Force Vue.js update..
+    this.user = Object.assign({}, this.user); 
+  }
 }

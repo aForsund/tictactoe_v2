@@ -76,11 +76,14 @@ module.exports = {
     let playerO_fetched = false
     let playerX_name = instance.playerOne.player;
     let playerX_id = null;
+    let playerX_rating = null;
     let playerO_name = instance.playerTwo.player;
     let playerO_id = null;
+    let playerO_rating = null;
     await User.findOne({ username: playerX_name })
       .then(user => {
         playerX_id = user._id;
+        playerX_rating = user.rating;
         playerX_fetched = true;
         
       })
@@ -88,6 +91,7 @@ module.exports = {
     await User.findOne({ username: playerO_name })
       .then(user => {
         playerO_id = user._id;
+        playerO_rating = user.rating;
         playerO_fetched = true;
       })
       .catch(err => console.log(err));
@@ -97,7 +101,9 @@ module.exports = {
       //id gets inserted by findOneAndUpdate method with upsert flag - check this!!
       instance.lastUpdate = Date.now();
       instance.playerX_id = playerX_id;
+      instance.playerX_rating = playerX_rating;
       instance.playerO_id = playerO_id;
+      instance.playerO_rating = playerO_rating;
       
       let insertData = JSON.parse(JSON.stringify(instance));
 
@@ -153,7 +159,9 @@ module.exports = {
     return response;
   },
 
-  updateUser: async (user, result, gameID) => {
+  updateUser: async (user, result, gameID, rating) => {
+    console.log('updateUser in socketUtils - rating: ', rating);
+    let updated = false;
     try{
       await User.findOne({ _id: user }, async (err, res) => {
         if (err) throw new Error(err.message, null);
@@ -173,12 +181,17 @@ module.exports = {
           else gameHistory = res.gameHistory;
           gameHistory.push(gameID);
           res.gameHistory = gameHistory;
+          //Update ELO rating
+          let updatedRating = res.rating + rating <= 0 ? 0 : res.rating + rating;
+          res.rating = updatedRating;
           //Save changes
-          await res.save();  
+          await res.save();
+          updated = true; 
         }
       });
     } catch (error) {
       console.log(error);
     }
+    return updated;
   }  
 };

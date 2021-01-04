@@ -3,14 +3,10 @@ const router = express.Router();
 const Game = require('../models/game');
 //const passport = require('passport');
 
-//Remove if not required - add function to update token on user interaction?
+//Remove if not required - add function to update token on user interaction
 const utils = require('../lib/utils');
 
 
-//Get all games
-router.get('/', (req, res) => {
-    res.send('Hello World');
-})
 
 //Get one game
 router.get('/search/:id', async (req, res) => {
@@ -27,14 +23,5 @@ router.get('/search/:id', async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 });
-
-//Save game
-router.post('/', (req, res) => {
-
-})
-//Update user
-router.post('/:id', (req, res) => {
-
-})
 
 module.exports = router;

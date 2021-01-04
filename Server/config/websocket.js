@@ -89,7 +89,10 @@ module.exports = (socket, io) => {
               socket.broadcast.to(object.id).emit('updateNotifications');
               socket.emit('updateNotifications');
             }
-            else handleErrors('notification', 'User already challenged...');
+            else {
+              handleErrors('notification', 'User already challenged...');
+            }
+
         });
 
         socket.on('removeNotification', async (name, notification) => {
@@ -139,11 +142,11 @@ module.exports = (socket, io) => {
 
         socket.on('sendMessage', message => {
           console.log('message received...');
-          let index = users.findIndex(index => index.id === socket.id);
+          let index = chatUsers.findIndex(index => index.id === socket.id);
           if (index !== -1) {
               console.log('message is', message);
               socket.emit('message', socketUtils.formatMessage('You', message));
-              socket.broadcast.to('chat').emit('message', socketUtils.formatMessage(socket.id, message));
+              socket.broadcast.to('chat').emit('message', socketUtils.formatMessage(chatUsers[index].username, message));
           } else {
               console.log('user is not part of chat...')
           }
@@ -280,7 +283,7 @@ module.exports = (socket, io) => {
               io.to(id).emit('gameNotification', id, true, 'Creating new game object... DONE');
               io.to(id).emit('gameNotification', id, false, 'Updating DB...');
               
-              instance.progress = 100;
+              instance.progress = 70;
               instance.started = true;
 
               let success = await socketUtils.startNewGame(instance);
@@ -289,6 +292,13 @@ module.exports = (socket, io) => {
 
                 io.to(id).emit('gameProgress', id, instance.progress);
                 io.to(id).emit('gameNotification', id, true, 'Updating DB... DONE');
+                io.to(id).emit('gameNotification', id, false, 'Removing Notification...');
+                await socketUtils.removeNotification(instance.playerOne.player, id);
+                await socketUtils.removeNotification(instance.playerTwo.player, id);
+                instance.progress = 100;
+                io.to(id).emit('gameNotification', id, true, 'Removing Notification... DONE');
+                io.to(id).emit('updateNotifications');
+                io.to(id).emit('gameProgress', id, instance.progress);
                 await new Promise(resolve => setTimeout(resolve, 2000));
                 io.to(id).emit('gameCountdown', id, 5000);
                 await new Promise(resolve => setTimeout(resolve, 5000));
@@ -375,11 +385,6 @@ module.exports = (socket, io) => {
           }
         });
            
-
-        socket.on('leaveGame', () => {
-
-        })
-
         socket.on('disconnect', () => {
           console.log('user disconnected')
             let user = [null];
@@ -452,11 +457,6 @@ module.exports = (socket, io) => {
           }
         }  
 
-        //User forfeits ongoing game
-        const leaveGame = (user, instanceId) => {
-
-        }
-
         //Create a new timer for each turn and watch for timeout - call decideOutcome function on timeout
         const watchGame = async (instance) => {
           
@@ -502,6 +502,7 @@ module.exports = (socket, io) => {
         //Evaluate outcome of game object and call further actions
         const decideOutcome = async (instance, timeout = false) => {
           instance.completed = true;
+          cancelWatcher(instance);
           let success = await socketUtils.updateGame(instance);
           if (success) io.to(instance.id).emit('fetchInstance', instance.id);
           else {
@@ -511,52 +512,42 @@ module.exports = (socket, io) => {
           // 1 -Calculate win or draw
           
           if (timeout) {
-            console.log('timeout...');
-            console.log('playerX_id: ', instance.playerX_id);
-            console.log('playerO_id: ', instance.playerO_id);
+            
             io.to(instance.id).emit('notification', 'end game on timeout...');
             if (instance.game.currentPlayer.mark === 'X') {
-              updateUser(instance.playerX_id, 'L', instance.id);
-              updateUser(instance.playerO_id, 'W', instance.id);
+              let playerRatings = calculateElo(instance.playerX_rating, instance.playerO_rating, false, false);
+              await socketUtils.updateUser(instance.playerX_id, 'L', instance.id, playerRatings[0]);
+              await socketUtils.updateUser(instance.playerO_id, 'W', instance.id, playerRatings[1]);
             } else {
-              updateUser(instance.playerX_id, 'W', instance.id);
-              updateUser(instance.playerO_id, 'O', instance.id);
+              let playerRatings = calculateElo(instance.playerX_rating, instance.playerO_rating, true, false);
+              await socketUtils.updateUser(instance.playerX_id, 'W', instance.id, playerRatings[0]);
+              await socketUtils.updateUser(instance.playerO_id, 'L', instance.id, playerRatings[1]);
             }
             deleteInstance(instance.id);
           }
           
           else if (instance.game.status.draw) {
             io.to(instance.id).emit('notification', 'end game on draw...');
-            updateUser(instance.playerX_id, 'D', instance.id);
-            updateUser(instance.playerO_id, 'D', instance.id);
+            let playerRatings = calculateElo(instance.playerX_rating, instance.playerO_rating, false, instance.game.status.turnCount);
+            await socketUtils.updateUser(instance.playerX_id, 'D', instance.id, playerRatings[0]);
+            await socketUtils.updateUser(instance.playerO_id, 'D', instance.id, playerRatings[1]);
             deleteInstance(instance.id);
           }
           
           else {
-            if (instance.game.currentPlayer.mark === 'X') {
-              updateUser(instance.playerX_id, 'W', instance.id);
-              updateUser(instance.playerO_id, 'L', instance.id);
+            if (instance.game.playerOne.turn) {
+              let playerRatings = calculateElo(instance.playerX_rating, instance.playerO_rating, true, false);
+              await socketUtils.updateUser(instance.playerX_id, 'W', instance.id, playerRatings[0]);
+              await socketUtils.updateUser(instance.playerO_id, 'L', instance.id, playerRatings[1]);
             } else {
-              updateUser(instance.playerX_id, 'L', instance.id);
-              updateUser(instance.playerO_id, 'O', instance.id);
+              let playerRatings = calculateElo(instance.playerX_rating, instance.playerO_rating, false, false);
+              await socketUtils.updateUser(instance.playerX_id, 'L', instance.id, playerRatings[0]);
+              await socketUtils.updateUser(instance.playerO_id, 'W', instance.id, playerRatings[1]);
             }
             deleteInstance(instance.id);
           }
-          
-          
-          
-          
-
-          
-
-          // 2 - Update game instance and save to DB...
-
-          // 3 - Update users
-          
-          // 4 - emit updates.. completed instances should not be requestable from client side to save calculations on server
-
-          // 5 - delete instance from multiplayerInstances array
-
+          io.to(instance.id).emit('updateUser');
+          io.to(instance.id).emit('fetchInstance', instance.id);
         }
 
         const getActiveInstances = async () => {
@@ -572,6 +563,7 @@ module.exports = (socket, io) => {
           for (let i = 0; i < insertArray.length; i++) {
             console.log(`starting game ${insertArray[i].id}`);
             startGame(insertArray[i]);
+            watchGame(insertArray[i]);
           }
           
 
@@ -599,8 +591,52 @@ module.exports = (socket, io) => {
           
         }
 
-        const updateUser = async (user, result, gameID) => {
-          await socketUtils.updateUser(user, result, gameID);
+
+        const calculateElo = (X_rating, O_rating, X_winner, draw = false) => {
+          //Define score total per game
+          let pointsPerGame = 16;
+          //Set variables for calculations
+          let bracket = null;
+          let playerX_rating = null;
+          let playerO_rating = null;
+          let drawFactor = null;
+          let pointSpread = Math.abs(X_rating - O_rating);
+          //Get bracket for calculating score for win or loss
+          if (pointSpread > 400) bracket = 0;
+          else if (pointSpread > 350) bracket = 1;
+          else if (pointSpread > 300) bracket = 2;
+          else if (pointSpread > 250) bracket = 3;
+          else if (pointSpread > 200) bracket = 4;
+          else if (pointSpread > 150) bracket = 5;
+          else if (pointSpread > 100) bracket = 6;
+          else if (pointSpread > 50) bracket = 7;
+          else bracket = 8;
+
+          if (draw) {
+            //Set score total according to round count
+            switch (draw) {
+            case 5:
+            case 6:
+              drawFactor = 0.5;
+              break;
+            case 7:
+              drawFactor = 0.25;
+              break;
+            default:
+              drawFactor = 0;
+            }
+            playerO_rating = Math.ceil(O_rating > X_rating ? (bracket * drawFactor) : (pointsPerGame - bracket) * drawFactor);
+            playerX_rating = -Math.abs(playerO_rating);
+          }
+          else if (X_winner) {
+            playerX_rating = X_rating > O_rating ? bracket : (pointsPerGame - bracket);
+            playerO_rating = -Math.abs(playerX_rating);
+          }
+          else {
+            playerO_rating = O_rating > X_rating ? bracket : (pointsPerGame - bracket);
+            playerX_rating = -Math.abs(playerO_rating);
+          }
+          return [playerX_rating, playerO_rating]
         }
-        
+
 }

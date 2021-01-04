@@ -1,8 +1,9 @@
 <template>
-  <div>
-      <button class="button is-primary mb-1" v-bind:class="{ 'is-success': instance.id === activeInstanceId }" @click="clickInstance()">
+  
+    <div class="buttons has-addons">
+      <button class="button is-primary" v-bind:class="{ 'is-success': instance.id === activeInstanceId }" @click="clickInstance()">
         
-        <span v-if="instance.started">
+        <span v-if="instance.started && !instance.completed">
           
           {{`
             Game vs ${instance.playerOne.player === user.name ? instance.playerTwo.player : instance.playerOne.player} -
@@ -11,12 +12,18 @@
               : instance.playerTwo.player === user.name ? 'You': instance.playerOne.player}
             `}}
         </span>
+        <span v-else-if="instance.completed">
+          Game Completed
+          
+        </span>
         <span v-else>
           {{ `Game vs ${user.name === instance.playerOne.player ? instance.playerTwo.player : instance.playerOne.player} ready to join` }}
         </span>
         
       </button>
-  </div>
+      <button v-if="instance.completed" class="button is-danger" @click="removeInstance(instance.id)">X</button>
+    </div>
+ 
 </template>
 
 <script>
@@ -30,7 +37,7 @@ export default {
     ...mapGetters('user', ['user', 'activeInstanceId']),
   },
   methods: {
-     ...mapActions('user', ['activateInstance', 'joinGame']),
+     ...mapActions('user', ['activateInstance', 'joinGame', 'removeInstance']),
     clickInstance() {
         console.log('clickInstance');
         console.log(this.instance.id);
@@ -49,7 +56,6 @@ export default {
 <style scoped>
 .button {
   transition: all 0.4s;
-  width: 100%;
-  
 }
+
 </style>

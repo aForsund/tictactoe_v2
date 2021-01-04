@@ -1,17 +1,13 @@
 <template>
   <div>
-      <p class="is-size-5" @click="expand">
-        <span>{{ player.username ? player.username : player }}</span>
-        
-      </p>
-      <p class="mt-2 mb-2" v-if="expanded">
-        <button class="button is-small is-primary">Message</button>
-        <button class="button is-small is-primary ml-1 mr-1" @click="challenge(player)">Challenge</button>
-        <button class="button is-small is-danger">View Card</button>
-      </p>
-        
-      
-    
+    <div class="mt-1 mb-1" @click="expand">
+      <button class="button is-small is-primary">{{ player.username ? player.username : player }}</button>
+    </div>
+    <div class="mt-1 mb-1" v-if="expanded">
+      <button class="button is-small is-primary">Message</button>
+      <button class="button is-small is-primary ml-1 mr-1" @click="challenge(player)">Challenge</button>
+      <button class="button is-small is-danger">View Card</button>
+    </div>
   </div>
 </template>
 
@@ -27,7 +23,7 @@ export default {
     }
   },
   methods: {
-    ...mapActions('user', ['challenge']),
+    ...mapActions('user', ['challenge', 'user']),
     expand() {
       this.expanded ? this.expanded = false : this.expanded = true;
     }

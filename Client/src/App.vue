@@ -52,11 +52,6 @@ export default {
     }
     
   },
-  mounted() {
-    if(this.socket) this.socket.on('hello', () => console.log('hello from mounted...'))
-  }
-	
-	
 };
 
 </script>

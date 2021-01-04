@@ -24,7 +24,5 @@ export default {
 .is-family-code {
   color: hsl(171, 100%, 41%)
 }
-.notification {
-  height: 135px;
-}
+
 </style>

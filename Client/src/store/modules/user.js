@@ -31,12 +31,15 @@ export const mutations = {
     SET_NEW_USER(state) {
       state.user = {};
     },
-    SET_USER_TOKEN(state, userData) {
-      state.user.token = userData.token;
-      state.user.expiresIn = userData.expiresIn;
+    SET_USER_TOKEN(state, token, expiresIn) {
+      state.user.token = token;
+      state.user.expiresIn = expiresIn;
     },
     SET_USER_NAME(state, name) {
       state.user.name = name;
+    },
+    SET_USER_ID(state, id) {
+      state.user.id = id;
     },
     SET_USER_LOCALSTORAGE(state) {
       localStorage.setItem('user', JSON.stringify(state.user));
@@ -129,7 +132,7 @@ export const mutations = {
       state.socket.collectionIndex.splice(index, 1, id);
     },
     DEACTIVATE_INSTANCE(state) {
-      state.instance = null;
+      state.activeInstance = null;
     },
     MAKE_MOVE(state, move) {
       state.socket.makeMove(state.user.name, state.activeInstance, move);
@@ -143,6 +146,22 @@ export const mutations = {
       //state.socket.gameNotifications.splice(index, 1, state.socket.gameNotifications[index]);
       //state.socket.spliceNotification(index, state.socket.gameNotifications[index]);
       //Vue.set(state.socket.gameNotifications, index, state.socket.gameNotifications[index]);
+    },
+
+    UPDATE_USER_DETAILS(state, user = null) {
+      if (!user) user = API_interface.getUser(state.user.id);
+      state.user.details = {
+        gamesPlayed: user.gamesPlayed,
+        lastOutcomes: user.lastOutcomes.join(''),
+        rating: user.rating
+      };
+      //Force Vue.js update..
+      let temp = {...state.user.details};
+      state.user.details = {...temp}; 
+    },
+    REMOVE_INSTANCE(state, id) {
+      state.socket.deleteGame(id);
+      if (state.activeInstance === id) state.activeInstance = null;
     }
   }
 export const actions = {
@@ -153,9 +172,11 @@ export const actions = {
           console.log(response.data);
           commit('SET_NEW_USER');
           commit('SET_USER_NAME', data.name);
-          commit('SET_USER_TOKEN', response.data);
+          commit('SET_USER_ID', response.data.user._id);
+          commit('SET_USER_TOKEN', response.data.token, response.data.expiresIn);
           commit('SET_USER_LOCALSTORAGE');
           commit('HIDE_LOGIN');
+          commit('UPDATE_USER_DETAILS', response.data.user);
         })
         .catch(err => console.log(err));
       
@@ -172,9 +193,11 @@ export const actions = {
           console.log(response.data);
           commit('SET_NEW_USER');
           commit('SET_USER_NAME', data.name);
-          commit('SET_USER_TOKEN', response.data);
+          commit('SET_USER_TOKEN', response.data.token, response.data.expiresIn);
+          commit('SET_USER_ID', response.data.user._id);
           commit('SET_USER_LOCALSTORAGE');
           commit('HIDE_LOGIN');
+          commit('UPDATE_USER_DETAILS', response.data.user);
         })
         .catch(err => console.log(err));
     },
@@ -253,6 +276,15 @@ export const actions = {
     },
     clearCountdown({ commit }, id) {
       commit('CLEAR_COUNTDOWN', id);
+    },
+    updateUser({ commit }) {
+      commit('UPDATE_USER_DETAILS');
+    },
+    closeGame({ commit }) {
+      commit('DEACTIVATE_INSTANCE');
+    },
+    removeInstance({ commit }, id) {
+      commit('REMOVE_INSTANCE', id);
     }
  }
 

@@ -3,17 +3,17 @@
     
       <div class="tile is-ancestor">
   <div class="tile is-4 is-vertical is-parent">
-    <div class="tile is-child notification is-info">
+    <div class="tile is-child notification is-dark">
       <p class="title">Details</p>
       <p>Player Name: <span v-if="user">{{ user.name }}</span></p>
-      <p>Games Played</p>
-      <p>ELO rating</p>
-      <p>Last Results</p>
+      <p v-if="socket">Games Played: {{ socket.details.gamesPlayed }}</p>
+      <p v-if="socket">ELO rating: {{ socket.details.rating }}</p>
+      <p v-if="socket">Last Results: {{ socket.details.lastOutcomes }}</p>
     </div>
     <div class="tile is-child notification is-dark">
       <Settings />
     </div>
-    <div v-if="online" class="title is-child notification is-info">
+    <div v-if="online" class="title is-child notification is-dark">
       <Users />
     </div>
     <div class="title is-child notification is-dark">
@@ -22,6 +22,7 @@
     <div class="title is-child notification is-dark">
       <GameInstances />
     </div>
+    <!--
     <div class="tile is-child notification is-danger">
       <p class="title">Test</p>
       <button @click="printUser">Print user</button>
@@ -33,19 +34,20 @@
       <button @click="printId">Print ID</button>
       <button @click="printCollectionIndex">Print collection index</button>
     </div>
-    
+    -->
 
   </div>
-  <div v-if="activeInstance" class="tile is-8 is-parent">
-    <div class="tile is-child is-dark">
+  <div  class="tile is-8 is-vertical is-parent">
+    <div v-if="activeInstance" class="tile is-child is-dark">
       <MultiplayerGame />
     </div>
-  </div>
-  <div v-if="activeChat" class="tile is-8 is-parent">
-    <div class="tile is-child notification is-dark">
+
+    <div v-if="activeChat" class="tile is-child is-dark">
       <Chat />
     </div>
-  </div>
+      
+    </div>
+  
   
   
 </div>

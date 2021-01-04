@@ -61,7 +61,8 @@ router.post('/login', (req, res, next) => {
 				if (isValid) {
 					const jwt = utils.issueJWT(user);
 					res.status(200).json({
-						success: true,
+            success: true,
+            user: user,
 						token: jwt.token,
 						expiresIn: jwt.expires,
 					});
