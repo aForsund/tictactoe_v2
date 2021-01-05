@@ -2,7 +2,7 @@
 
 This project is a demo of a tic tac toe implementation with singleplayer and multiplayer options.
 
-See live demo of latest version [here](http://tictactoev2.azurewebsites.net/)
+See live demo of latest version [here](https://tictactoev2.azurewebsites.net/)
 
 See live demo of second version [here](https://shrouded-waters-13601.herokuapp.com/).
 
