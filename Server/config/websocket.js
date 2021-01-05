@@ -9,9 +9,9 @@ const Timer = require('../lib/timer.js');
 const botName = 'Chatbot';
 
 //set timer variables here
-const roundTimer = 10000;
+const roundTimer = 20000;
 const buffer = 2000;
-////set timer variables here
+
 
 const users = [];
 const chatUsers = [];

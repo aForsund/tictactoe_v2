@@ -52,24 +52,16 @@ app.use(express.static(__dirname + '/public/'));
 //Direct all traffic to Vue.js app
 app.get('*', (req, res) => res.sendFile(__dirname + '/public/index.html'));
 
-
-
-
 const server = require('http').createServer(app);
 
-
-const io = socketio(server);
+const io = socketio.listen(server, {perMessageDeflate: false});
 
 io.on('connection', socket => {
   require('./config/websocket')(socket, io);
-
 });
 
 
 let port = 3000;
-
-
-
 
 server.listen(process.env.PORT || port, () => console.log(`Server started on port ${port}`));
 

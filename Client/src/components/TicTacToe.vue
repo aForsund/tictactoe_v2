@@ -68,8 +68,8 @@
               <span v-else
                 >Last move:
                 {{ game.history[game.history.length - 1].player.mark }} to [{{
-                  game.history[game.history.length - 1].move[0] + 1
-                }}, {{ game.history[game.history.length - 1].move[1] + 1 }}]
+                  game.history[game.history.length - 1].move[1] + 1
+                }}, {{ game.history[game.history.length - 1].move[0] + 1 }}]
               </span>
             </p>
           </div>

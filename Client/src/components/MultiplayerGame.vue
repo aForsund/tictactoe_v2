@@ -66,7 +66,7 @@
           <div class="pt-1">
             
             <p class="title" v-bind:class="{ 'has-text-primary': activeInstance.game.status.isEnded }">
-              <span v-if="activeInstance.game.status.isEnded">{{ activeInstance.game.history.result === 'draw' ? 'It\'s a draw' : `${activeInstance.game.currentPlayer.mark} has won` }}</span>
+              <span v-if="activeInstance.game.status.isEnded">{{ activeInstance.game.status.draw ? 'It\'s a draw' : `${activeInstance.game.currentPlayer.mark} has won` }}</span>
               <span v-else-if="activeInstance.completed">{{ activeInstance.game.currentPlayer.mark }} lost on timeout...</span>
               <span v-else>{{ activeInstance.game.currentPlayer.mark }}'s turn</span>
             </p>

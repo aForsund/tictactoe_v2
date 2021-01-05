@@ -81,6 +81,7 @@ export const mutations = {
     },
     DISABLE_ONLINE(state) {
       state.online = false;
+      state.socket = null;
     },
     OPEN_SOCKET_CONNECTION(state) {
       state.socket = new MySocket(state.user);
@@ -88,7 +89,7 @@ export const mutations = {
     },
     CLOSE_SOCKET_CONNECTION(state) {
       state.socket.logOut();
-      state.socket = null;
+      
     },
     JOIN_CHAT(state) {
       state.socket.joinChat();
@@ -148,13 +149,17 @@ export const mutations = {
       //Vue.set(state.socket.gameNotifications, index, state.socket.gameNotifications[index]);
     },
 
-    UPDATE_USER_DETAILS(state, user = null) {
-      if (!user) user = API_interface.getUser(state.user.id);
-      state.user.details = {
-        gamesPlayed: user.gamesPlayed,
-        lastOutcomes: user.lastOutcomes.join(''),
-        rating: user.rating
-      };
+    async UPDATE_USER_DETAILS(state, user = null) {
+      if (!user) user = await API_interface.getUser(state.user.id)
+        .then(response => user = response.data)
+        .catch(err => console.log(err));
+      if (user) {
+        state.user.details = {
+          gamesPlayed: user.gamesPlayed,
+          lastOutcomes: user.lastOutcomes ? user.lastOutcomes.join('') : '',
+          rating: user.rating
+        };
+      }
       //Force Vue.js update..
       let temp = {...state.user.details};
       state.user.details = {...temp}; 
@@ -203,6 +208,7 @@ export const actions = {
     },
     setUser({ commit }, data) {
       commit('SET_USER_DATA', data);
+      commit('UPDATE_USER_DETAILS');
     },
     showModal({ commit }) {
       commit('SHOW_MODAL');
@@ -222,8 +228,10 @@ export const actions = {
     },
     disableOnline({ commit }) {
       commit('LEAVE_CHAT')
-      commit('DISABLE_ONLINE');
       commit('CLOSE_SOCKET_CONNECTION');
+      commit('UPDATE_USER_DETAILS');
+      commit('DISABLE_ONLINE');
+      
     },
     testJWT(context) {
       API_interface.testJWT2(state.user.token)

@@ -2,7 +2,7 @@
 
 This project is a demo of a tic tac toe implementation with singleplayer and multiplayer options.
 
-See live demo of latest version ---TBA---
+See live demo of latest version [here](http://tictactoev2.azurewebsites.net/)
 
 See live demo of second version [here](https://shrouded-waters-13601.herokuapp.com/).
 
@@ -50,7 +50,7 @@ ELO is calculated in the following way:
 | 351-400      | 1   | 15   |
 | 400+         | 0   | 16   |
 
-If a game is drawn before the 8th round, the non-starting player receives increased ELO of 25% or 50% of a corresponding win. All ELO distributions are zero zum, e.g sum of points added or deducted are always zero.
+If a game is a tie before the 8th round, the non-starting player receives increased ELO of 25% or 50% of a corresponding win, depending on round count. All ELO distributions are zero zum - sum of points added or deducted are always zero.
 
 ### Project updates
 
@@ -77,6 +77,7 @@ Update 16/11/2020
 
 ### Remaining work
 
-- Test deployed functionality and stability (not done)
+- Test deployed functionality and stability
+- Scale Docker deployment as required
 - Further fail safe implementation and bug fixes as required
 - Further expand functionality such as private messages, player leaderboards and advanced dashboard options (online game history ect...)
