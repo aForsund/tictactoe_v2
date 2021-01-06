@@ -336,8 +336,7 @@ export const getters = {
       return state.socket.collection[state.activeInstance].progress;
     },
     gameCountdown(state) {
-      
-      return state.socket.collection[state.activeInstance].countdown;
+      return state.socket.countdownCollection[state.activeInstance];
     }
 
   }

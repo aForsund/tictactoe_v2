@@ -16,6 +16,10 @@ export default class MySocket {
     this.notifications = [];
     this.collectionIndex = [];
     this.collection = {};
+    this.timers = {};
+    this.timersActive = false;
+    this.updateTimer = null;
+    this.countdownCollection = {};
     this.initSocket();
     this.connect();
     }
@@ -100,11 +104,14 @@ export default class MySocket {
         });
 
         this.socket.on('gameCountdown', (id, time) => {
+          console.log(`I'm told to start countdown...`);
           this.updateCountdown(id, time);
         });
 
         this.socket.on('gameStopCountdown', id => {
-          this.updateCountdown(id);
+          console.log(`I'm told to stop countdown...`);
+          console.log(id);
+          //this.updateCountdown(id);
         });
 
         this.socket.on('updateUser', () => {
@@ -176,11 +183,12 @@ export default class MySocket {
     if (i !== -1) {
       this.collectionIndex.splice(i, 1);
       delete this.collection[id];
+      delete this.timers[id];
     }
   }
   //Update game object in collection
   updateGame(game) {
-    //Create game object if it does not exist
+    //Create game object index if it does not exist
     if (!this.collectionIndex.includes(game.id)) this.collectionIndex.push(game.id);
     this.collection[game.id] = Object.assign({}, this.collection[game.id], game);
   }
@@ -213,10 +221,59 @@ export default class MySocket {
     this.forceUpdate(id);
   }
   //Update countdown indicator in collection
-  updateCountdown(id, time = undefined) {
-    this.collection[id].countdown = time;
-    this.forceUpdate(id);
+  updateCountdown(id, time) {
+    //set interval
+    let interval = 1000;
+
+    //Create new timers object if does not exist
+    if (!this.timers[id]) {
+      console.log(`timers.${id} does not exist.. creating now...`);
+      this.timers[id] = {};
+    } 
+    //Or stop timer if already active..
+    else {
+      this.stopTimer(id);
+    }
+    //this.timers[id] = Object.assign({}, this.timers[id] ? this.timers[id] : {});
+    
+    console.log('creating new countdown in updateCountdown', time);
+    
+    //create temporary object to update countdownCollection
+    if (!this.countdownCollection[id]) this.countdownCollection[id] = {};
+    this.countdownCollection[id].value = time;
+    this.countdownCollection[id].startValue = time;
+    this.updateTimers();
+    this.timers[id].interval = setInterval(() => {
+      this.countdownCollection[id].value = this.countdownCollection[id].value - interval;
+      console.log('inside interval', id, this.countdownCollection[id].value);
+      if (this.countdownCollection[id].value <= 0 || !this.countdownCollection[id].value) {
+        this.stopTimer(id);
+      }
+    }, interval);
+    
   }
+  stopTimer(id) {
+    console.log('stop timer', id);
+    if (this.timers[id]) {
+      if (this.timers[id].interval) clearInterval(this.timers[id].interval);
+      this.timers[id].interval = null;
+      this.countdownCollection[id].value = undefined;
+    }
+  }
+
+  updateTimers() {
+    if (this.timersActive) return;
+    else {
+      this.timersActive = true;
+      let interval = 1000;
+      console.log('starting timers update...')
+      this.updateTimer = setInterval(() => {
+        console.log('inside updateTimers function...');
+        this.countdownCollection = Object.assign({}, this.countdownCollection);
+      }, interval);
+    }
+  }
+
   forceUpdate(id) {
     console.log(id);
     //let temp = {...this.collection[id]} 
