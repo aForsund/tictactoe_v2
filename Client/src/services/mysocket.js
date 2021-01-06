@@ -99,9 +99,8 @@ export default class MySocket {
 
             //code to fix timer updates due to issues with sockets not coming through on Azure hosting
             //roundTimer is set to 20000ms on server
-            if (response.data.completed) this.stopTimer(response.data.id);
+            if (response.data.completed) this.deleteTimer(response.data.id);
             else if (response.data.started) this.updateCountdown(response.data.id, 20000);
-            
           }
         });
 
@@ -265,6 +264,17 @@ export default class MySocket {
       if (this.timers[id].interval) clearInterval(this.timers[id].interval);
       this.timers[id].interval = null;
       this.countdownCollection[id].value = null;
+    }
+  }
+
+  deleteTimer(id) {
+    if (this.timers[id]) {
+      this.stopTimer(id);
+      delete this.timers[id];
+    }
+    if (Object.keys(this.timers).length === 0) {
+      clearInterval(this.updateTimer);
+      this.timersActive = false;
     }
   }
 
