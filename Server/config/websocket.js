@@ -303,7 +303,8 @@ module.exports = (socket, io) => {
                 io.to(id).emit('gameCountdown', id, 5000);
                 await new Promise(resolve => setTimeout(resolve, 5000));
                 io.to(id).emit('fetchInstance', id);
-                io.to(id).emit('gameCountdown', id, roundTimer);
+                //socket below not working on current Azure hosting - implemented fix on client side
+                //io.to(id).emit('gameCountdown', id, roundTimer);
                 watchGame(instance);
               }
               else {
@@ -361,7 +362,7 @@ module.exports = (socket, io) => {
           }
           if (moveCommited) {
             cancelWatcher(instance);
-            io.to(id).emit('gameStopCountdown', id);
+            //io.to(id).emit('gameStopCountdown', id);
             io.to(id).emit('gameNotification', id, false, `${user} selected ${move}`);
             io.to(id).emit('gameNotification', id, false, 'updating DB...');
             
@@ -379,7 +380,7 @@ module.exports = (socket, io) => {
             if (instance.game.status.isEnded) {
               decideOutcome(instance);
             } else {
-              io.to(id).emit('gameCountdown', id, roundTimer);  
+              //io.to(id).emit('gameCountdown', id, roundTimer);  
               watchGame(instance);
             }
           }

@@ -4,7 +4,7 @@
       <span v-if="notification.challenge">Challenged by {{ notification.challenger }}</span>
       <span v-else-if="notification.sentChallenge">{{ notification.accepted ? `Challenge vs ${notification.receiver} accepted` : `Challenge sent to ${notification.receiver}` }}</span>
     </button>
-    <button class="button is-danger " @click="dismiss(notification)">X</button>
+    <button class="button is-danger" @click="dismiss(notification)">X</button>
   </div>
 </template>
 

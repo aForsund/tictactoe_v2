@@ -96,6 +96,12 @@ export default class MySocket {
           if (response.data) {
             console.log('adding: ', response.data);
             this.updateGame(response.data);
+
+            //code to fix timer updates due to issues with sockets not coming through on Azure hosting
+            //roundTimer is set to 20000ms on server
+            if (response.data.completed) this.stopTimer(response.data.id);
+            else if (response.data.started) this.updateCountdown(response.data.id, 20000);
+            
           }
         });
 
@@ -104,14 +110,15 @@ export default class MySocket {
         });
 
         this.socket.on('gameCountdown', (id, time) => {
+          //Only used to start initial countdown before started = true
           console.log(`I'm told to start countdown...`);
           this.updateCountdown(id, time);
         });
 
+        //This is no longer in use - timers are stopped when completed = true
         this.socket.on('gameStopCountdown', id => {
           console.log(`I'm told to stop countdown...`);
-          console.log(id);
-          //this.updateCountdown(id);
+          this.stopTimer(id);
         });
 
         this.socket.on('updateUser', () => {
@@ -257,7 +264,7 @@ export default class MySocket {
     if (this.timers[id]) {
       if (this.timers[id].interval) clearInterval(this.timers[id].interval);
       this.timers[id].interval = null;
-      this.countdownCollection[id].value = undefined;
+      this.countdownCollection[id].value = null;
     }
   }
 
