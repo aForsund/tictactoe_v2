@@ -1,28 +1,27 @@
 <template>
-  
-    <div class="buttons has-addons">
-      <button class="button is-primary" v-bind:class="{ 'is-success': instance.id === activeInstanceId }" @click="clickInstance()">
-        
-        <span v-if="instance.started && !instance.completed">
-          
-          {{`
-            Game vs ${instance.playerOne.player === user.name ? instance.playerTwo.player : instance.playerOne.player} -
-            round: ${instance.game.status.turnCount} 
-            turn: ${instance.game.playerOne.turn ? instance.playerOne.player === user.name ? 'You' : instance.playerTwo.player 
-              : instance.playerTwo.player === user.name ? 'You': instance.playerOne.player}
-            `}}
-        </span>
-        <span v-else-if="instance.completed">
-          Game Completed
-          
-        </span>
-        <span v-else>
-          {{ `Game vs ${user.name === instance.playerOne.player ? instance.playerTwo.player : instance.playerOne.player} ready to join` }}
-        </span>
-        
-      </button>
-      <button v-if="instance.completed" class="button is-danger" @click="removeInstance(instance.id)">X</button>
-    </div>
+ 
+  <div class="buttons has-addons">
+    <button class="button is-primary" v-bind:class="{ 'is-success': id === activeInstanceId }" @click="clickInstance()">
+      
+      <span v-if="socket.collection[id].started && !socket.collection[id].completed">
+        {{`
+          Game vs ${socket.collection[id].playerOne.player === user.name ? socket.collection[id].playerTwo.player : socket.collection[id].playerOne.player} -
+          round: ${socket.collection[id].game.status.turnCount} 
+          turn: ${socket.collection[id].game.playerOne.turn ? socket.collection[id].playerOne.player === user.name ? 'You' : socket.collection[id].playerTwo.player 
+            : socket.collection[id].playerTwo.player === user.name ? 'You': socket.collection[id].playerOne.player}
+          `}}
+      </span>
+      <span v-else-if="socket.collection[id].completed">
+        Game Completed
+      </span>
+      <span v-else>
+        {{ `Game vs ${user.name === socket.collection[id].playerOne.player ? socket.collection[id].playerTwo.player : socket.collection[id].playerOne.player} ready to join` }}
+      </span>
+      
+    </button>
+    <button v-if="socket.collection[id].completed" class="button is-danger" @click="removeInstance(id)">X</button>
+</div>
+ 
  
 </template>
 
@@ -30,24 +29,33 @@
 import { mapGetters, mapActions } from 'vuex';
 export default {
   props: {
-    instance: [Object],
-    active: Boolean
+    instanceId: String
+  },
+  data() {
+    return {
+      id: null
+    }
   },
   computed: {
-    ...mapGetters('user', ['user', 'activeInstanceId']),
+    ...mapGetters('user', ['user', 'socket', 'activeInstanceId']),
+    
   },
   methods: {
      ...mapActions('user', ['activateInstance', 'joinGame', 'removeInstance']),
-    clickInstance() {
+     clickInstance(){
+        
         console.log('clickInstance');
-        console.log(this.instance.id);
-        if (!this.instance.started) {
+        console.log(this.id);
+        if (!this.socket.collection[this.id].started) {
           console.log('joingame')
-          this.joinGame(this.instance.id);
+          this.joinGame(this.id);
         }
         
-        this.activateInstance(this.instance.id);
+        this.activateInstance(this.id);
       },
+  },
+  created() {
+    this.id = this.instanceId;
   }
 
 }

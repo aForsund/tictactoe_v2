@@ -2,7 +2,7 @@
     <div>
         <h1 class="title">Game Instances</h1>
         <div v-if="socket">
-            <GameInstance v-for="(instance, index) in socket.collectionIndex" :key="index" :instance="socket.collection[instance]" :active="instance === activeInstance" />
+            <GameInstance v-for="(instance, index) in socket.collectionIndex" :key="index" :instanceId="instance"></GameInstance>
         </div>
         
     </div>
@@ -17,7 +17,7 @@ export default {
         GameInstance
     },
     computed: {
-        ...mapGetters("user", ["socket", 'activeInstance']),
+        ...mapGetters("user", ["socket"]),
     },
 }
 </script>
